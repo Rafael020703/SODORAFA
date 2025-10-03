@@ -2,6 +2,7 @@
 const express = require('express');
 const http = require('http');
 const session = require('express-session');
+const { sessionMiddleware } = require('./sessionStore');
 const passport = require('passport');
 const { Strategy: TwitchStrategy } = require('passport-twitch-new');
 const { Server } = require('socket.io');
@@ -11,11 +12,13 @@ const path = require('path');
 const fetch = require('node-fetch').default;
 
 // ————— Config Twitch (hard‑coded) —————
-const TWITCH_CLIENT_ID     = 'hsziksnh5mqsq2kvpqfp3m8x42up82';
-const TWITCH_CLIENT_SECRET = 'fz1egldkiqp9434ayi0rnyfv7rfpmb';
-const SESSION_SECRET       = 'sua_chave_secreta';
-const CALLBACK_URL         = 'https://sodorafa.squareweb.app/auth/twitch/callback';
-const PORT                 = 80;
+require('dotenv').config();
+const TWITCH_CLIENT_ID     = process.env.TWITCH_CLIENT_ID;
+const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+const SESSION_SECRET       = process.env.SESSION_SECRET;
+const CALLBACK_URL         = process.env.CALLBACK_URL;
+let PORT = parseInt(process.env.PORT, 10);
+if (!PORT || PORT < 1024) PORT = 3000;
 
 // ————— Credenciais do bot —————
 let BOT_USERNAME, BOT_OAUTH;
@@ -33,7 +36,7 @@ const app    = express();
 const server = http.createServer(app);
 const io     = new Server(server);
 
-app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: false }));
+app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -55,20 +58,21 @@ passport.use(new TwitchStrategy({
 }));
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
-  res.redirect('/auth/twitch');
+  // Redireciona direto para autenticação, sem tela intermediária
+  return passport.authenticate('twitch')(req, res, next);
 }
 
-// ————— Configs e Canais —————
-const CHANNELS_FILE = path.join(__dirname, 'channels.json');
-const CONFIG_FILE   = path.join(__dirname, 'channelConfigs.json');
-
-let channelsToMonitor = [];
-try { channelsToMonitor = JSON.parse(fs.readFileSync(CHANNELS_FILE)); }
-catch { channelsToMonitor = []; }
-
+// ————— Configs e Canais (unificado) —————
+const CHANNELS_CONFIGS_FILE = path.join(__dirname, 'channelsConfigs.json');
 let channelConfigs = {};
-try { channelConfigs = JSON.parse(fs.readFileSync(CONFIG_FILE)); }
-catch { channelConfigs = {}; }
+let channelsToMonitor = [];
+try {
+  channelConfigs = JSON.parse(fs.readFileSync(CHANNELS_CONFIGS_FILE));
+  channelsToMonitor = Object.keys(channelConfigs);
+} catch {
+  channelConfigs = {};
+  channelsToMonitor = [];
+}
 
 const defaultConfig = {
   allowedCommands: {
@@ -82,15 +86,8 @@ const defaultConfig = {
 };
 
 // ————— Rotas —————
-app.get('/', (req, res) => {
-  if (req.isAuthenticated()) return res.sendFile(path.join(__dirname, 'public/index.html'));
-  res.send(`
-    <html><body style="display:flex;justify-content:center;align-items:center;height:100vh;">
-      <a href="/auth/twitch" style="padding:12px 20px;background:#9146FF;color:#fff;border-radius:4px;text-decoration:none;font-size:16px;">
-        Login with Twitch
-      </a>
-    </body></html>
-  `);
+app.get('/', ensureAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 app.get('/auth/twitch', passport.authenticate('twitch'));
 app.get('/auth/twitch/callback',
@@ -114,23 +111,29 @@ app.get('/get-config', ensureAuth, (req, res) => {
 });
 
 // Adiciona canal à lista de monitoramento
+
 app.post('/add-channel', ensureAuth, (req, res) => {
   const chan = req.body.channel.toLowerCase();
   if (!channelsToMonitor.includes(chan)) {
     channelsToMonitor.push(chan);
-    fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channelsToMonitor, null, 2));
+    // Cria config padrão se não existir
+    if (!channelConfigs[chan]) {
+      channelConfigs[chan] = { allowedCommands: defaultConfig.allowedCommands };
+    }
+    fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
     client.join(chan).catch(console.error);
   }
   res.json({ success: true });
 });
 
 // Salva configurações vindas do front
+
 app.post('/save-config', ensureAuth, (req, res) => {
   const chan = req.user.display_name.toLowerCase();
   channelConfigs[chan] = {
     allowedCommands: req.body.allowedCommands
   };
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(channelConfigs, null, 2));
+  fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
   res.json({ success: true });
 });
 
@@ -398,5 +401,5 @@ io.on('connection', socket => {
 
 // ————— Inicia —————
 server.listen(PORT, () =>
-  console.log(`Servidor rodando na porta ${PORT}`)
+  console.log(`Servidor rodando em http://localhost:${PORT}`)
 );

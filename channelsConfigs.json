@@ -1,0 +1,36 @@
+{
+  "rafael020703": {
+    "allowedCommands": {
+      "watch": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "stop": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "replay": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "so": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "clip": {
+        "enabled": false,
+        "roles": [
+          "moderator"
+        ]
+      }
+    }
+  }
+}

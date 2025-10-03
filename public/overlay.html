@@ -9,10 +9,9 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: transparent;
       overflow: hidden;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
     }
     #clip-container {
       position: fixed;
@@ -21,15 +20,32 @@
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      padding: 1rem;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s;
     }
     #twitch-embed {
       width: 100%;
-      max-width: 90vw;
+      max-width: 92vw;
       aspect-ratio: 16 / 9;
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      border: 3px solid #00ff99;
+      border-radius: 18px;
+      box-shadow: 0 0 32px #00ff9940, 0 2px 0 #000;
+      transition: box-shadow 0.2s, border 0.2s;
+    }
+    #twitch-embed:focus {
+      border: 3px solid #00e6e6;
+      box-shadow: 0 0 40px #00e6e655;
+    }
+    @media (max-width: 700px) {
+      #twitch-embed {
+        max-width: 100vw;
+        border-radius: 10px;
+      }
+      #clip-container { padding: 0.2rem; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
@@ -78,17 +94,22 @@
 
       // Recebe novo clipe
       socket.on('novoClip', ({ id, duration }) => {
+        clearTimeout(timeoutId);
         iframe.src = 
           `https://clips.twitch.tv/embed?clip=${id}` +
           `&parent=${parent}&autoplay=true&controls=false`;
         container.style.display = 'flex';
         iframe.style.display    = 'block';
 
-        // fecha e sinaliza fim depois de duration segundos
-        timeoutId = setTimeout(() => {
-          fecharOverlay();
-          socket.emit('clipFinalizado');
-        }, duration * 1000);
+        // Timeout só inicia após o carregamento do iframe
+        iframe.onload = () => {
+          clearTimeout(timeoutId);
+          // Buffer de 0.5s para garantir reprodução total
+          timeoutId = setTimeout(() => {
+            fecharOverlay();
+            socket.emit('clipFinalizado');
+          }, (duration + 0.5) * 1000);
+        };
       });
 
       // Fecha sob comando

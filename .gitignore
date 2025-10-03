@@ -1,0 +1,10 @@
+node_modules/
+.env
+credentials.json
+*.log
+sessions/
+channels.json
+channelConfigs.json
+*.sqlite
+.DS_Store
+*.bak

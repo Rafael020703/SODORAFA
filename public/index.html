@@ -9,15 +9,16 @@
     /* Estilos mantidos conforme sua versão */
     * { box-sizing: border-box; }
     body {
-      background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
-      color: #fff;
-      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #18181b 0%, #232526 100%);
+      color: #f3f3f3;
+      font-family: 'Roboto', Arial, sans-serif;
       margin: 0;
       padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
+      letter-spacing: 0.01em;
     }
     header {
       width: 100%;
@@ -26,115 +27,165 @@
       text-align: center;
     }
     header h1 {
-      font-size: 2.2em;
-      color: #00ff00;
+      font-size: 2.5em;
+      color: #00ff99;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 12px #00ff9955, 0 1px 0 #000;
+      margin-bottom: 0.2em;
     }
     .container {
-      background: rgba(26, 26, 26, 0.9);
-      border: 2px solid #00ff00;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,255,0,0.3);
+      background: rgba(34, 36, 40, 0.97);
+      border: 2px solid #00ff99;
+      padding: 32px 24px 28px 24px;
+      border-radius: 18px;
+      box-shadow: 0 6px 32px 0 #00ff9940, 0 1.5px 0 #000;
       width: 100%;
-      max-width: 500px;
-      margin-bottom: 30px;
+      max-width: 520px;
+      margin-bottom: 32px;
       text-align: center;
+      transition: box-shadow 0.2s;
     }
     h2 { color: #00ff00; margin-bottom: 15px; }
     input[type="text"], select {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1em;
+      padding: 13px 14px;
+      margin-bottom: 16px;
+      border: 1.5px solid #00ff99;
+      background: #232526;
+      color: #fff;
+      border-radius: 7px;
+      font-size: 1.08em;
       outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1.5px 0 #00ff9940;
+    }
+    input[type="text"]:focus, select:focus {
+      border: 2px solid #00ffcc;
+      box-shadow: 0 0 8px #00ffcc55;
     }
     button {
-      padding: 12px 20px;
-      background: #00ff00;
+      padding: 13px 22px;
+      background: linear-gradient(90deg, #00ff99 60%, #00e6e6 100%);
       border: none;
-      border-radius: 5px;
-      font-size: 1em;
+      border-radius: 7px;
+      font-size: 1.08em;
       cursor: pointer;
-      color: #000;
-      transition: background 0.3s;
-      margin-top: 5px;
+      color: #18181b;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #00ff9940;
+      margin-top: 7px;
+      margin-bottom: 7px;
+      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
     }
-    button:hover { background: #00cc00; }
+    button:hover {
+      background: linear-gradient(90deg, #00e6e6 0%, #00ff99 100%);
+      color: #232526;
+      box-shadow: 0 4px 16px #00ff9940;
+    }
     .btn-primary {
       width: 80%;
-      max-width: 300px;
-      margin: 10px auto;
+      max-width: 320px;
+      margin: 12px auto;
       display: block;
+      font-size: 1.13em;
     }
     .floating-btn {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 50px;
-      height: 50px;
-      background: #00ff00;
-      color: #000;
+      bottom: 24px;
+      right: 24px;
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(135deg, #00ff99 60%, #00e6e6 100%);
+      color: #18181b;
       border: none;
       border-radius: 50%;
-      font-size: 1.5em;
+      font-size: 1.7em;
       cursor: pointer;
       display: none;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      transition: background 0.3s;
+      box-shadow: 0 4px 16px #00ff9940;
+      transition: background 0.2s, color 0.2s;
+      z-index: 200;
     }
-    .floating-btn:hover { background: #00cc00; }
+    .floating-btn:hover {
+      background: linear-gradient(135deg, #00e6e6 0%, #00ff99 100%);
+      color: #232526;
+    }
     #donationModal, #overlayLinkModal {
       display: none;
       position: fixed;
       z-index: 100;
       left: 0;
       top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
       align-items: center;
       justify-content: center;
       padding: 20px;
+      animation: fadeIn 0.2s;
     }
     #donationModal .modal-content,
     #overlayLinkModal .modal-content {
-      background: #1a1a1a;
-      border: 2px solid #00ff00;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 400px;
+      background: #232526;
+      border: 2px solid #00ff99;
+      border-radius: 14px;
+      padding: 28px 20px 22px 20px;
+      max-width: 420px;
       width: 100%;
       text-align: center;
       position: relative;
+      box-shadow: 0 6px 32px #00ff9940;
+      animation: popIn 0.25s;
     }
     #donationModal .modal-content h2, 
     #overlayLinkModal .modal-content h3 {
-      color: #00ff00;
+      color: #00ff99;
+      margin-bottom: 0.7em;
     }
     #donationModal .close-modal,
     #overlayLinkModal .close-modal {
       position: absolute;
       top: 10px;
       right: 15px;
-      font-size: 1.8em;
+      font-size: 2em;
       cursor: pointer;
       color: #fff;
+      transition: color 0.2s;
+    }
+    #donationModal .close-modal:hover,
+    #overlayLinkModal .close-modal:hover {
+      color: #00ff99;
     }
     #overlayLinkModal input {
       width: 100%;
-      padding: 10px;
-      font-size: 0.95em;
+      padding: 12px;
+      font-size: 1.05em;
       margin-bottom: 15px;
-      border-radius: 5px;
-      border: none;
+      border-radius: 7px;
+      border: 1.5px solid #00ff99;
+      background: #18181b;
+      color: #fff;
       outline: none;
+      transition: border 0.2s;
+    }
+    #overlayLinkModal input:focus {
+      border: 2px solid #00ffcc;
     }
     @media(max-width: 600px) {
-      header h1 { font-size: 1.8em; }
+      header h1 { font-size: 1.5em; }
+      .container { padding: 16px 4px 12px 4px; }
+      .modal-content { padding: 14px 4px 10px 4px; }
+      .floating-btn { width: 44px; height: 44px; font-size: 1.2em; bottom: 12px; right: 12px; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
@@ -147,7 +198,6 @@
   <section class="container" id="main-section">
     <!-- Área para usuários não autenticados -->
     <div id="preLogin">
-      <button class="btn-primary" onclick="window.location.href='/auth/twitch'">Login com Twitch</button>
       <button class="btn-primary" onclick="openDonationModal()">Apoie o Servidor (Live Pix)</button>
     </div>
     <!-- Área para usuários logados -->
