@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autoplay Overlay - Clipes Twitch</title>
+  <style>
+    /* Estilos inspirados no seu overlay atual */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+    #clip-container {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 1rem;
+    }
+    #twitch-embed {
+      width: 100%;
+      max-width: 90vw;
+      aspect-ratio: 16/9;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div id="clip-container">
+    <iframe
+      id="twitch-embed"
+      allowfullscreen
+      allow="autoplay"
+      scrolling="no"
+      style="display: none;"
+    ></iframe>
+  </div>
+
+  <script>
+    (function () {
+      // Extrai o nome do canal a partir da URL.
+      // Exemplo: se a URL for: 
+      // https://sodorafa.squareweb.app/autoplayclipes/rafael020703
+      // então "rafael020703" é o canal.
+      const parts   = window.location.pathname.split('/');
+      const channel = parts[parts.length - 1].toLowerCase();
+      const parent  = window.location.hostname;
+
+      const container = document.getElementById('clip-container');
+      const iframe    = document.getElementById('twitch-embed');
+
+      let clips = [];         // Lista de clipes
+      let currentIndex = 0;   // Índice do clipe atual
+      let timeoutId = null;   // ID do timeout para avançar o clipe
+
+      // Função para buscar os clipes a partir do endpoint de API
+      async function loadClips() {
+        try {
+          const response = await fetch(`/api/autoplayclipes/${channel}`);
+          if (response.ok) {
+            clips = await response.json();
+            console.log("Clipes carregados:", clips);
+            if (clips.length > 0) {
+              container.style.display = 'flex';
+              playClip(clips[currentIndex]);
+            } else {
+              console.error("Nenhum clipe encontrado para o canal:", channel);
+            }
+          } else {
+            console.error("Erro ao carregar clipes.");
+          }
+        } catch (error) {
+          console.error("Erro ao carregar clipes:", error);
+        }
+      }
+
+      // Função que reproduz o clipe atual
+      function playClip(clip) {
+        // Monta a URL do embed com os parâmetros necessários
+        const embedUrl = `https://clips.twitch.tv/embed?clip=${clip.id}&parent=${parent}&autoplay=true&controls=false`;
+        iframe.src = embedUrl;
+        iframe.style.display = 'block';
+
+        // Agenda a reprodução do próximo clipe após o tempo definido
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(nextClip, clip.duration * 1000);
+      }
+
+      // Função que avança para o próximo clipe (cíclico)
+      function nextClip() {
+        currentIndex = (currentIndex + 1) % clips.length;
+        playClip(clips[currentIndex]);
+      }
+
+      // Inicia a busca e reprodução dos clipes
+      loadClips();
+    })();
+  </script>
+</body>
+</html>

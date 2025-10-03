@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overlay - Clipe Twitch</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+    #clip-container {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 1rem;
+    }
+    #twitch-embed {
+      width: 100%;
+      max-width: 90vw;
+      aspect-ratio: 16 / 9;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div id="clip-container">
+    <iframe
+      id="twitch-embed"
+      allowfullscreen
+      allow="autoplay"
+      scrolling="no"
+      style="display: none;"
+    ></iframe>
+  </div>
+
+  <!-- Som de ban -->
+  <audio id="ban-sound" src="/sounds/ban.mp3" preload="auto"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function () {
+      const container = document.getElementById('clip-container');
+      const iframe    = document.getElementById('twitch-embed');
+      const banAudio  = document.getElementById('ban-sound');
+      let timeoutId;
+
+      function fecharOverlay() {
+        clearTimeout(timeoutId);
+        iframe.src = '';
+        iframe.style.display   = 'none';
+        container.style.display = 'none';
+      }
+
+      // Descobre canal e parent
+      const parts   = window.location.pathname.split('/');
+      const channel = parts[parts.length - 1].toLowerCase();
+      const parent  = window.location.hostname;
+
+      // Conecta
+      const socket = io({ query: { channel } });
+
+      // Toca som de ban
+      socket.on('playBanSound', () => {
+        banAudio.currentTime = 0;
+        banAudio.play();
+      });
+
+      // Recebe novo clipe
+      socket.on('novoClip', ({ id, duration }) => {
+        iframe.src = 
+          `https://clips.twitch.tv/embed?clip=${id}` +
+          `&parent=${parent}&autoplay=true&controls=false`;
+        container.style.display = 'flex';
+        iframe.style.display    = 'block';
+
+        // fecha e sinaliza fim depois de duration segundos
+        timeoutId = setTimeout(() => {
+          fecharOverlay();
+          socket.emit('clipFinalizado');
+        }, duration * 1000);
+      });
+
+      // Fecha sob comando
+      socket.on('fecharOverlay', fecharOverlay);
+
+      // Fecha com ESC
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') fecharOverlay();
+      });
+    })();
+  </script>
+</body>
+</html>

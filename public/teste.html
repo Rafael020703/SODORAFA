@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overlay - Clipe Twitch</title>
+
+  <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #clip-container {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .video-js, #twitch-embed {
+      width: 80vw;
+      height: 45vw;
+      max-width: 1280px;
+      max-height: 720px;
+      border-radius: 10px;
+    }
+
+    .video-js {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="clip-container">
+    <video id="clip-player" class="video-js vjs-default-skin" controls preload="auto" playsinline></video>
+    <iframe 
+      id="twitch-embed"
+      frameborder="0"
+      allowfullscreen="true"
+      scrolling="no"
+      allow="autoplay"
+      style="display:none;">
+    </iframe>
+  </div>
+
+  <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>
+
+  <script>
+    (function () {
+      const container = document.getElementById('clip-container');
+      const player = videojs('clip-player', {
+        autoplay: true,
+        muted: false,
+        controls: false,
+        preload: 'auto',
+        playsinline: true
+      });
+
+      const iframe = document.getElementById('twitch-embed');
+
+      function fecharOverlay() {
+        player.pause();
+        player.reset();
+        player.el().style.display = 'none';
+        iframe.style.display = 'none';
+        iframe.src = '';
+        container.style.display = 'none';
+      }
+
+      // Link do clipe da Twitch
+      const twitchClipUrl = "https://www.twitch.tv/rafael020703/clip/HotVivaciousSnailCopyThis-bfzeiWEOS4y20tV4";
+      const isTwitchClip = twitchClipUrl.includes('twitch.tv');
+
+      if (isTwitchClip) {
+        const slug = twitchClipUrl.split('/clip/')[1];
+        if (!slug) {
+          console.error("Slug do clipe não encontrado.");
+          return;
+        }
+
+        // Seu domínio, sem http(s)
+        const parent = "sodorafa.squareweb.app";
+
+        // Embed com autoplay e sem controles
+        iframe.src = `https://clips.twitch.tv/embed?clip=${slug}&parent=${parent}&autoplay=true&controls=false`;
+        iframe.style.display = 'block';
+        player.el().style.display = 'none';
+        container.style.display = 'flex';
+
+        setTimeout(fecharOverlay, 60000); // Fecha após 60s
+      }
+
+      // Permitir fechar com ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === "Escape") fecharOverlay();
+      });
+    })();
+  </script>
+</body>
+</html>

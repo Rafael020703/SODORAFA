@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TwitchClips</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Estilos mantidos conforme sua versão */
+    * { box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%;
+      max-width: 1200px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.2em;
+      color: #00ff00;
+    }
+    .container {
+      background: rgba(26, 26, 26, 0.9);
+      border: 2px solid #00ff00;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,255,0,0.3);
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    h2 { color: #00ff00; margin-bottom: 15px; }
+    input[type="text"], select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      outline: none;
+    }
+    button {
+      padding: 12px 20px;
+      background: #00ff00;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      cursor: pointer;
+      color: #000;
+      transition: background 0.3s;
+      margin-top: 5px;
+    }
+    button:hover { background: #00cc00; }
+    .btn-primary {
+      width: 80%;
+      max-width: 300px;
+      margin: 10px auto;
+      display: block;
+    }
+    .floating-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background: #00ff00;
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.5em;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: background 0.3s;
+    }
+    .floating-btn:hover { background: #00cc00; }
+    #donationModal, #overlayLinkModal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #donationModal .modal-content,
+    #overlayLinkModal .modal-content {
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    #donationModal .modal-content h2, 
+    #overlayLinkModal .modal-content h3 {
+      color: #00ff00;
+    }
+    #donationModal .close-modal,
+    #overlayLinkModal .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.8em;
+      cursor: pointer;
+      color: #fff;
+    }
+    #overlayLinkModal input {
+      width: 100%;
+      padding: 10px;
+      font-size: 0.95em;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    @media(max-width: 600px) {
+      header h1 { font-size: 1.8em; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TwitchClips</h1>
+  </header>
+
+  <!-- Seção Principal -->
+  <section class="container" id="main-section">
+    <!-- Área para usuários não autenticados -->
+    <div id="preLogin">
+      <button class="btn-primary" onclick="window.location.href='/auth/twitch'">Login com Twitch</button>
+      <button class="btn-primary" onclick="openDonationModal()">Apoie o Servidor (Live Pix)</button>
+    </div>
+    <!-- Área para usuários logados -->
+    <div id="postLogin" style="display:none;">
+      <h2>Bem-vindo, <span id="usernameDisplay"></span></h2>
+      <!-- Área de configuração -->
+      <div id="config-section">
+        <h2>Configurar Canal</h2>
+        <div id="config-content">
+          <form id="config-form">
+            <!-- !watch -->
+            <label for="watchEnabled">Habilitar !watch:</label>
+            <input type="checkbox" id="watchEnabled" name="watchEnabled" checked>
+            <label for="watch">Permissão para comando !watch:</label>
+            <select id="watch" name="watch">
+              <option value="broadcaster">Broadcaster</option>
+              <option value="moderator">Moderador</option>
+              <option value="vip">VIP</option>
+              <option value="subscriber">Sub</option>
+              <option value="viewer">Todos</option>
+            </select>
+            
+            <!-- !stop -->
+            <label for="stopEnabled">Habilitar !stop:</label>
+            <input type="checkbox" id="stopEnabled" name="stopEnabled" checked>
+            <label for="stop">Permissão para comando !stop:</label>
+            <select id="stop" name="stop">
+              <option value="broadcaster">Broadcaster</option>
+              <option value="moderator">Moderador</option>
+              <option value="vip">VIP</option>
+              <option value="subscriber">Sub</option>
+              <option value="viewer">Todos</option>
+            </select>
+            
+            <!-- !replay -->
+            <label for="replayEnabled">Habilitar !replay:</label>
+            <input type="checkbox" id="replayEnabled" name="replayEnabled" checked>
+            <label for="replay">Permissão para comando !replay:</label>
+            <select id="replay" name="replay">
+              <option value="broadcaster">Broadcaster</option>
+              <option value="moderator">Moderador</option>
+              <option value="vip">VIP</option>
+              <option value="subscriber">Sub</option>
+              <option value="viewer">Todos</option>
+            </select>
+            
+            <!-- !so -->
+            <label for="soEnabled">Habilitar !so:</label>
+            <input type="checkbox" id="soEnabled" name="soEnabled" checked>
+            <label for="so">Permissão para comando !so:</label>
+            <select id="so" name="so">
+              <option value="broadcaster">Broadcaster</option>
+              <option value="moderator">Moderador</option>
+              <option value="vip">VIP</option>
+              <option value="subscriber">Sub</option>
+              <option value="viewer">Todos</option>
+            </select>
+            
+            <!-- !clip -->
+            <label for="clipEnabled">Habilitar !clip:</label>
+            <input type="checkbox" id="clipEnabled" name="clipEnabled" checked>
+            <label for="clip">Permissão para comando !clip:</label>
+            <select id="clip" name="clip">
+              <option value="broadcaster">Broadcaster</option>
+              <option value="moderator">Moderador</option>
+              <option value="vip">VIP</option>
+              <option value="subscriber">Sub</option>
+              <option value="viewer">Todos</option>
+            </select>
+            
+            <button type="submit" class="btn-primary">Salvar Configurações</button>
+          </form>
+          
+        </div>
+      </div>
+      <br>
+      <button class="btn-primary" onclick="openDonationModal()">Apoie o Servidor (Live Pix)</button>
+      <br>
+      <br>
+      <a href="/logout" style="color:#00ff00; text-decoration: none; font-weight: bold;">Logout</a>
+    </div>
+  </section>
+
+  <!-- Botão flutuante de link do overlay (apenas para usuários logados) -->
+  <button class="floating-btn" id="floatingOverlayBtn" onclick="openOverlayLinkModal()">🔗</button>
+
+  <!-- Modal de Doação -->
+  <div id="donationModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeDonationModal()">&times;</span>
+      <h2>Doe para Manter o Servidor Ativo</h2>
+      <p>Se você deseja apoiar o servidor, por favor, doe via Live Pix!</p>
+      <a href="https://livepix.gg/rafael020703" target="_blank">
+        <img src="livepix_qrcode.png" alt="QR Code Live Pix" style="width:100%; max-width:250px; margin-top:20px;">
+      </a>
+      <p><a href="https://livepix.gg/rafael020703" target="_blank" style="color:#00ff00;">Clique aqui para doar via Live Pix</a></p>
+    </div>
+  </div>
+
+  <!-- Modal para exibir o link do overlay -->
+  <div id="overlayLinkModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeOverlayLinkModal()">&times;</span>
+      <h3>Link do Overlay</h3>
+      <input type="text" id="overlayLinkInput" readonly>
+      <button onclick="copyOverlayLink()">Copiar Link</button>
+    </div>
+  </div>
+
+  <script>
+      // Quando a página for carregada, busca /get-config e preenche tudo (checkboxes e selects)
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch('/get-config');
+      if (!response.ok) throw new Error('não autenticado');
+
+      const config = await response.json();
+      const cmds = ['watch', 'stop', 'replay', 'so', 'clip'];
+
+      cmds.forEach(cmd => {
+        const cb = document.getElementById(cmd + 'Enabled');
+        const sel = document.getElementById(cmd);
+        // marca o checkbox de habilitado conforme veio do back
+        if (config.allowedCommands[cmd] && typeof config.allowedCommands[cmd].enabled === 'boolean') {
+          cb.checked = config.allowedCommands[cmd].enabled;
+        }
+        // define o select conforme veio do back
+        if (config.allowedCommands[cmd] && Array.isArray(config.allowedCommands[cmd].roles)) {
+          sel.value = config.allowedCommands[cmd].roles[0] || sel.value;
+        }
+      });
+
+      // exibe UI de pós-login
+      document.getElementById('preLogin').style.display = 'none';
+      document.getElementById('postLogin').style.display = 'block';
+      document.getElementById('usernameDisplay').textContent = config.username || 'seuCanal';
+      document.getElementById('floatingOverlayBtn').style.display = 'flex';
+
+      // adiciona canal monitorado (caso não exista)
+      const userChannel = (config.username || 'seuCanal').toLowerCase();
+      await fetch('/add-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: userChannel })
+      });
+
+    } catch (err) {
+      console.error('Erro ao verificar autenticação:', err);
+      // mantém UI de pré-login
+      document.getElementById('preLogin').style.display = 'block';
+      document.getElementById('postLogin').style.display = 'none';
+    }
+  });
+
+  // Ao submeter, envia exatamente a mesma estrutura booleana + array de roles
+  document.getElementById('config-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cmds = ['watch', 'stop', 'replay', 'so', 'clip'];
+    const allowedCommands = {};
+
+    cmds.forEach(cmd => {
+      allowedCommands[cmd] = {
+        enabled: document.getElementById(cmd + 'Enabled').checked,
+        roles: [document.getElementById(cmd).value]
+      };
+    });
+
+    try {
+      const res = await fetch('/save-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowedCommands })
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert('Configurações salvas com sucesso!');
+      } else {
+        alert('Erro ao salvar configurações.');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar config:', error);
+      alert('Erro ao salvar configurações.');
+    }
+  });
+
+    // Modal de Doação
+    function openDonationModal() {
+      document.getElementById('donationModal').style.display = 'flex';
+    }
+    function closeDonationModal() {
+      document.getElementById('donationModal').style.display = 'none';
+    }
+
+    // Modal do Link do Overlay
+    function openOverlayLinkModal() {
+      const baseUrl = window.location.origin;
+      let channel = document.getElementById('usernameDisplay').textContent || "seuCanal";
+      const overlayLink = `${baseUrl}/overlay/${channel.toLowerCase()}`;
+      document.getElementById('overlayLinkInput').value = overlayLink;
+      document.getElementById('overlayLinkModal').style.display = 'flex';
+    }
+    function closeOverlayLinkModal() {
+      document.getElementById('overlayLinkModal').style.display = 'none';
+    }
+    function copyOverlayLink() {
+      const input = document.getElementById('overlayLinkInput');
+      input.select();
+      document.execCommand("copy");
+      alert("Link copiado!");
+    }
+  </script>
+</body>
+</html>
