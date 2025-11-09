@@ -8,5 +8,5 @@ channelConfigs.json
 *.sqlite
 .DS_Store
 *.bak
-channelConfigs.json
+channelConfigs
 credentials.json
