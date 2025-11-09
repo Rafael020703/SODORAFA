@@ -18,7 +18,7 @@ const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const SESSION_SECRET       = process.env.SESSION_SECRET;
 const CALLBACK_URL         = process.env.CALLBACK_URL;
 let PORT = parseInt(process.env.PORT, 10);
-if (!PORT || PORT < 1024) PORT = 3000;
+if (!PORT || PORT < 1024) PORT = 80;
 
 // ————— Credenciais do bot —————
 let BOT_USERNAME, BOT_OAUTH;
