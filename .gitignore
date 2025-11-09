@@ -7,3 +7,4 @@ sessions/
 *.bak
 credentials.json
 channelsConfigs.json
+channelsConfigs
