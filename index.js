@@ -180,7 +180,17 @@ app.post('/save-config', ensureAuth, (req, res) => {
   fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
   res.json({ success: true });
 });
+// Rota pública para verificar se existe configuração para um overlay de canal
+app.get('/overlay/check/:channel', (req, res) => {
+  const chan = (req.params.channel || '').toLowerCase();
+  if (!chan) return res.status(400).json({ ok: false, message: 'missing_channel' });
 
+  // channelConfigs foi lido no startup; garantimos que a chave exista
+  if (channelConfigs[chan]) {
+    return res.json({ ok: true });
+  }
+  return res.status(404).json({ ok: false, message: 'channel_not_found' });
+});
 app.get('/overlay/:channel', (req, res) =>
   res.sendFile(path.join(__dirname, 'public/overlay.html'))
 );
