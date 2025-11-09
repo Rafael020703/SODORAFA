@@ -351,6 +351,7 @@ if (clipId) {
     return;
   }
 });
+ 
 
 // ————— montagem de fila —————
 async function queueUserClip(chan, user) {
