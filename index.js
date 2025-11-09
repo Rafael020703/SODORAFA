@@ -205,46 +205,92 @@ async function updateAccessToken() {
               `?client_id=${TWITCH_CLIENT_ID}` +
               `&client_secret=${TWITCH_CLIENT_SECRET}` +
               `&grant_type=client_credentials`;
-  const resp = await fetch(url, { method: 'POST' });
-  const data = await resp.json();
-  TWITCH_TOKEN   = `Bearer ${data.access_token}`;
-  tokenExpiresAt = Date.now() + data.expires_in * 1000;
+  try {
+    const resp = await fetch(url, { method: 'POST' });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok || !data || !data.access_token) {
+      console.error('updateAccessToken: erro ao obter token', resp.status, data);
+      TWITCH_TOKEN = null;
+      tokenExpiresAt = 0;
+      return;
+    }
+    TWITCH_TOKEN   = `Bearer ${data.access_token}`;
+    tokenExpiresAt = Date.now() + (data.expires_in || 0) * 1000;
+  } catch (err) {
+    console.error('updateAccessToken: exceção', err);
+    TWITCH_TOKEN = null;
+    tokenExpiresAt = 0;
+  }
 }
 
 async function getUserData(username) {
+  if (!username) return null;
   if (!TWITCH_TOKEN || Date.now() >= tokenExpiresAt - 60000) {
     await updateAccessToken();
   }
-  const resp = await fetch(
-    `https://api.twitch.tv/helix/users?login=${username}`,
-    { headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': TWITCH_TOKEN } }
-  );
-  const json = await resp.json();
-  return json.data[0] || null;
+  try {
+    const resp = await fetch(
+      `https://api.twitch.tv/helix/users?login=${encodeURIComponent(username)}`,
+      { headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': TWITCH_TOKEN } }
+    );
+    const json = await resp.json().catch(() => null);
+    if (!resp.ok || !json || !Array.isArray(json.data)) {
+      console.warn('getUserData: resposta inesperada', resp.status, json);
+      return null;
+    }
+    return json.data[0] || null;
+  } catch (err) {
+    console.error('getUserData: exceção', err);
+    return null;
+  }
 }
 
 async function getAllUserClips(userId) {
+  if (!userId) return [];
   let all = [], cursor = null;
-  do {
-    const url = `https://api.twitch.tv/helix/clips?broadcaster_id=${userId}&first=100${cursor?`&after=${cursor}`:''}`;
-    const resp = await fetch(url, { headers: { 'Client-ID':TWITCH_CLIENT_ID, 'Authorization':TWITCH_TOKEN } });
-    const json = await resp.json();
-    all.push(...json.data);
-    cursor = json.pagination?.cursor || null;
-  } while (cursor);
+  try {
+    do {
+      const url = `https://api.twitch.tv/helix/clips?broadcaster_id=${encodeURIComponent(userId)}&first=100${cursor?`&after=${cursor}`:''}`;
+      const resp = await fetch(url, { headers: { 'Client-ID':TWITCH_CLIENT_ID, 'Authorization':TWITCH_TOKEN } });
+      const json = await resp.json().catch(() => null);
+      if (!resp.ok || !json) {
+        console.warn('getAllUserClips: resposta inesperada', resp.status, json);
+        break;
+      }
+      if (Array.isArray(json.data)) all.push(...json.data);
+      cursor = json.pagination?.cursor || null;
+    } while (cursor);
+  } catch (err) {
+    console.error('getAllUserClips: exceção', err);
+  }
   return all;
 }
 
 async function getClipInfo(id) {
+  if (!id) return null;
   if (!TWITCH_TOKEN || Date.now() >= tokenExpiresAt - 60000) {
     await updateAccessToken();
   }
-  const resp = await fetch(
-    `https://api.twitch.tv/helix/clips?id=${id}`,
-    { headers:{ 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': TWITCH_TOKEN } }
-  );
-  const json = await resp.json();
-  return json.data[0] || null;
+  try {
+    const resp = await fetch(
+      `https://api.twitch.tv/helix/clips?id=${encodeURIComponent(id)}`,
+      { headers:{ 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': TWITCH_TOKEN } }
+    );
+    const json = await resp.json().catch(() => null);
+    if (!resp.ok) {
+      console.warn('getClipInfo: Twitch API retornou erro', resp.status, json);
+      return null;
+    }
+    if (!json || !Array.isArray(json.data) || json.data.length === 0) {
+      // nenhum clipe encontrado — log para debugar caso necessário
+      console.warn('getClipInfo: nenhum dado para clip', id, json);
+      return null;
+    }
+    return json.data[0];
+  } catch (err) {
+    console.error('getClipInfo: exceção', err);
+    return null;
+  }
 }
 
 async function createClip(broadcasterId, token) {
