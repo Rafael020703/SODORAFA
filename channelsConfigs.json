@@ -2,33 +2,39 @@
   "rafael020703": {
     "allowedCommands": {
       "watch": {
-        "enabled": false,
+        "enabled": true,
         "roles": [
-          "broadcaster"
+          "vip"
         ]
       },
       "stop": {
         "enabled": true,
         "roles": [
-          "broadcaster"
+          "vip"
         ]
       },
       "replay": {
         "enabled": true,
         "roles": [
-          "broadcaster"
+          "vip"
+        ]
+      },
+      "repeat": {
+        "enabled": true,
+        "roles": [
+          "moderator"
         ]
       },
       "so": {
         "enabled": true,
         "roles": [
-          "broadcaster"
+          "vip"
         ]
       },
       "clip": {
         "enabled": false,
         "roles": [
-          "moderator"
+          "broadcaster"
         ]
       }
     }

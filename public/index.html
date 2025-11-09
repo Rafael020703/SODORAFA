@@ -1,413 +1,660 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TwitchClips</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <title>TwitchClips — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Estilos mantidos conforme sua versão */
-    * { box-sizing: border-box; }
+    :root {
+      --bg-0: #0f1720;
+      --bg-1: #16181b;
+      --card: rgb(0, 0, 0);
+      --accent: linear-gradient(90deg, #00ff99, #00e6e6);
+      --muted: #9aa4a3;
+      --glass: rgba(255, 255, 255, 0.03);
+      --border: rgba(0, 255, 153, 0.12);
+      --success: #16a34a;
+      font-family: 'Inter', Roboto, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
     body {
-      background: linear-gradient(135deg, #18181b 0%, #232526 100%);
-      color: #f3f3f3;
-      font-family: 'Roboto', Arial, sans-serif;
+      height: 100%;
       margin: 0;
-      padding: 20px;
+      background: linear-gradient(135deg, #0b0d10 0%, #141617 100%);
+      color: #eafaf1
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 20px
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 18px
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #00ffab;
+      letter-spacing: 1px
+    }
+
+    header .subtitle {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 18px;
+    }
+
+    /* Left column: main card */
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
+    }
+
+    /* controls list */
+    .controls {
       display: flex;
       flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-card {
+      display: flex;
       align-items: center;
-      min-height: 100vh;
-      letter-spacing: 0.01em;
-    }
-    header {
-      width: 100%;
-      max-width: 1200px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-    header h1 {
-      font-size: 2.5em;
-      color: #00ff99;
-      letter-spacing: 2px;
-      text-shadow: 0 2px 12px #00ff9955, 0 1px 0 #000;
-      margin-bottom: 0.2em;
-    }
-    .container {
-      background: rgba(34, 36, 40, 0.97);
-      border: 2px solid #00ff99;
-      padding: 32px 24px 28px 24px;
-      border-radius: 18px;
-      box-shadow: 0 6px 32px 0 #00ff9940, 0 1.5px 0 #000;
-      width: 100%;
-      max-width: 520px;
-      margin-bottom: 32px;
-      text-align: center;
-      transition: box-shadow 0.2s;
-    }
-    h2 { color: #00ff00; margin-bottom: 15px; }
-    input[type="text"], select {
-      width: 100%;
-      padding: 13px 14px;
-      margin-bottom: 16px;
-      border: 1.5px solid #00ff99;
-      background: #232526;
-      color: #fff;
-      border-radius: 7px;
-      font-size: 1.08em;
-      outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
-      box-shadow: 0 1.5px 0 #00ff9940;
-    }
-    input[type="text"]:focus, select:focus {
-      border: 2px solid #00ffcc;
-      box-shadow: 0 0 8px #00ffcc55;
-    }
-    button {
-      padding: 13px 22px;
-      background: linear-gradient(90deg, #00ff99 60%, #00e6e6 100%);
-      border: none;
-      border-radius: 7px;
-      font-size: 1.08em;
-      cursor: pointer;
-      color: #18181b;
-      font-weight: bold;
-      box-shadow: 0 2px 8px #00ff9940;
-      margin-top: 7px;
-      margin-bottom: 7px;
-      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #00e6e6 0%, #00ff99 100%);
-      color: #232526;
-      box-shadow: 0 4px 16px #00ff9940;
-    }
-    .btn-primary {
-      width: 80%;
-      max-width: 320px;
-      margin: 12px auto;
-      display: block;
-      font-size: 1.13em;
-    }
-    .floating-btn {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 54px;
-      height: 54px;
-      background: linear-gradient(135deg, #00ff99 60%, #00e6e6 100%);
-      color: #18181b;
-      border: none;
-      border-radius: 50%;
-      font-size: 1.7em;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 16px #00ff9940;
-      transition: background 0.2s, color 0.2s;
-      z-index: 200;
-    }
-    .floating-btn:hover {
-      background: linear-gradient(135deg, #00e6e6 0%, #00ff99 100%);
-      color: #232526;
-    }
-    #donationModal, #overlayLinkModal {
-      display: none;
-      position: fixed;
-      z-index: 100;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.85);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      animation: fadeIn 0.2s;
-    }
-    #donationModal .modal-content,
-    #overlayLinkModal .modal-content {
-      background: #232526;
-      border: 2px solid #00ff99;
-      border-radius: 14px;
-      padding: 28px 20px 22px 20px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-      box-shadow: 0 6px 32px #00ff9940;
-      animation: popIn 0.25s;
-    }
-    #donationModal .modal-content h2, 
-    #overlayLinkModal .modal-content h3 {
-      color: #00ff99;
-      margin-bottom: 0.7em;
-    }
-    #donationModal .close-modal,
-    #overlayLinkModal .close-modal {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      font-size: 2em;
-      cursor: pointer;
-      color: #fff;
-      transition: color 0.2s;
-    }
-    #donationModal .close-modal:hover,
-    #overlayLinkModal .close-modal:hover {
-      color: #00ff99;
-    }
-    #overlayLinkModal input {
-      width: 100%;
+      justify-content: space-between;
+      gap: 12px;
       padding: 12px;
-      font-size: 1.05em;
-      margin-bottom: 15px;
-      border-radius: 7px;
-      border: 1.5px solid #00ff99;
-      background: #18181b;
-      color: #fff;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      transition: all .15s;
+    }
+
+    .control-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0
+    }
+
+    .control-left label {
+      font-weight: 600;
+      color: #e8fff5;
+      font-size: 14px
+    }
+
+    .control-left small {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .control-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    select {
+      background: transparent;
+      color: #eafaf1;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      min-width: 120px;
+    }
+
+    select:focus {
+      border-color: var(--accent);
       outline: none;
-      transition: border 0.2s;
+      box-shadow: 0 0 10px rgba(0, 255, 153, 0.6);
+      /* Destaque no foco */
     }
-    #overlayLinkModal input:focus {
-      border: 2px solid #00ffcc;
+
+    select option {
+      background: #16181b;
+      /* Para os itens de seleção */
+      color: #eafaf1;
+      padding: 8px;
     }
-    @media(max-width: 600px) {
-      header h1 { font-size: 1.5em; }
-      .container { padding: 16px 4px 12px 4px; }
-      .modal-content { padding: 14px 4px 10px 4px; }
-      .floating-btn { width: 44px; height: 44px; font-size: 1.2em; bottom: 12px; right: 12px; }
+
+    select:hover {
+      background-color: rgba(0, 255, 153, 0.1);
+      /* Efeito hover */
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+
+    select:disabled {
+      opacity: 0.45
     }
-    @keyframes popIn {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+
+    /* switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #283033;
+      border-radius: 26px;
+      transition: all .18s;
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35)
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: all .18s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5)
+    }
+
+    .switch input:checked+.slider {
+      background: var(--accent)
+    }
+
+    .switch input:checked+.slider:before {
+      transform: translateX(20px)
+    }
+
+    /* disabled visual */
+    .control-card.disabled {
+      opacity: 0.62
+    }
+
+    /* right column: info & actions */
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+
+    .panel {
+      padding: 14px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+    .panel h2 {
+      color: #ff0000
+    }
+    .panel h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #bfffd6
+    }
+
+    .panel p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #05201d;
+      box-shadow: 0 6px 18px rgba(0, 255, 153, 0.08)
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      color: #eafaf1
+    }
+
+    /* notification modal */
+    #notifyModal {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #001f0e, #05302b);
+      color: #d6fff0;
+      border: 1px solid rgba(0, 255, 153, 0.08);
+      box-shadow: 0 8px 34px rgba(0, 0, 0, 0.6);
+      z-index: 9999;
+      display: none
+    }
+
+    #notifyModal.success {
+      border-color: rgba(22, 163, 74, 0.15)
+    }
+
+    /* footer */
+    footer {
+      margin-top: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    /* responsive */
+    @media(max-width:980px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        order: 2
+      }
     }
   </style>
 </head>
-<body>
-  <header>
-    <h1>TwitchClips</h1>
-  </header>
 
-  <!-- Seção Principal -->
-  <section class="container" id="main-section">
-    <!-- Área para usuários não autenticados -->
-    <div id="preLogin">
-      <button class="btn-primary" onclick="openDonationModal()">Apoie o Servidor (Live Pix)</button>
-    </div>
-    <!-- Área para usuários logados -->
-    <div id="postLogin" style="display:none;">
-      <h2>Bem-vindo, <span id="usernameDisplay"></span></h2>
-      <!-- Área de configuração -->
-      <div id="config-section">
-        <h2>Configurar Canal</h2>
-        <div id="config-content">
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>TwitchClips</h1>
+        <div class="subtitle">Dashboard — Configure comandos do bot</div>
+      </div>
+      <div>
+        <a href="/logout" class="btn btn-ghost">Logout</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h2 style="margin:0 0 12px;color:#bfffd6">Configurações de Comandos</h2>
+        <div class="controls" id="controlsList">
+          <!-- control cards serão preenchidos pelo HTML estático abaixo -->
           <form id="config-form">
-            <!-- !watch -->
-            <label for="watchEnabled">Habilitar !watch:</label>
-            <input type="checkbox" id="watchEnabled" name="watchEnabled" checked>
-            <label for="watch">Permissão para comando !watch:</label>
-            <select id="watch" name="watch">
-              <option value="broadcaster">Broadcaster</option>
-              <option value="moderator">Moderador</option>
-              <option value="vip">VIP</option>
-              <option value="subscriber">Sub</option>
-              <option value="viewer">Todos</option>
-            </select>
-            
-            <!-- !stop -->
-            <label for="stopEnabled">Habilitar !stop:</label>
-            <input type="checkbox" id="stopEnabled" name="stopEnabled" checked>
-            <label for="stop">Permissão para comando !stop:</label>
-            <select id="stop" name="stop">
-              <option value="broadcaster">Broadcaster</option>
-              <option value="moderator">Moderador</option>
-              <option value="vip">VIP</option>
-              <option value="subscriber">Sub</option>
-              <option value="viewer">Todos</option>
-            </select>
-            
-            <!-- !replay -->
-            <label for="replayEnabled">Habilitar !replay:</label>
-            <input type="checkbox" id="replayEnabled" name="replayEnabled" checked>
-            <label for="replay">Permissão para comando !replay:</label>
-            <select id="replay" name="replay">
-              <option value="broadcaster">Broadcaster</option>
-              <option value="moderator">Moderador</option>
-              <option value="vip">VIP</option>
-              <option value="subscriber">Sub</option>
-              <option value="viewer">Todos</option>
-            </select>
-            
-            <!-- !so -->
-            <label for="soEnabled">Habilitar !so:</label>
-            <input type="checkbox" id="soEnabled" name="soEnabled" checked>
-            <label for="so">Permissão para comando !so:</label>
-            <select id="so" name="so">
-              <option value="broadcaster">Broadcaster</option>
-              <option value="moderator">Moderador</option>
-              <option value="vip">VIP</option>
-              <option value="subscriber">Sub</option>
-              <option value="viewer">Todos</option>
-            </select>
-            
-            <!-- !clip -->
-            <label for="clipEnabled">Habilitar !clip:</label>
-            <input type="checkbox" id="clipEnabled" name="clipEnabled" checked>
-            <label for="clip">Permissão para comando !clip:</label>
-            <select id="clip" name="clip">
-              <option value="broadcaster">Broadcaster</option>
-              <option value="moderator">Moderador</option>
-              <option value="vip">VIP</option>
-              <option value="subscriber">Sub</option>
-              <option value="viewer">Todos</option>
-            </select>
-            
-            <button type="submit" class="btn-primary">Salvar Configurações</button>
+            <div class="control-card" data-cmd="watch">
+              <div class="control-left">
+                <label>!watch</label>
+                <small>Reproduz um clipe específico</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !watch">
+                  <input type="checkbox" id="watchEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="watch">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-card" data-cmd="stop">
+              <div class="control-left">
+                <label>!stop</label>
+                <small>Para a reprodução e fecha overlay</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !stop">
+                  <input type="checkbox" id="stopEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="stop">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-card" data-cmd="replay">
+              <div class="control-left">
+                <label>!replay</label>
+                <small>Reproduz o último clipe</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !replay">
+                  <input type="checkbox" id="replayEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="replay">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-card" data-cmd="repeat">
+              <div class="control-left">
+                <label>!repeat</label>
+                <small>Ativa modo contínuo para um usuário</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !repeat">
+                  <input type="checkbox" id="repeatEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="repeat">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="control-card" data-cmd="so">
+              <div class="control-left">
+                <label>!so</label>
+                <small>Shoutout aleatório</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !so">
+                  <input type="checkbox" id="soEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="so">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+            <!--
+            <div class="control-card" data-cmd="clip">
+              <div class="control-left">
+                <label>!clip</label>
+                <small>Cria um clipe e envia no chat</small>
+              </div>
+              <div class="control-right">
+                <label class="switch" title="Habilitar !clip">
+                  <input type="checkbox" id="clipEnabled">
+                  <span class="slider"></span>
+                </label>
+                <select id="clip">
+                  <option value="broadcaster">Broadcaster</option>
+                  <option value="moderator">Moderador</option>
+                  <option value="vip">VIP</option>
+                  <option value="subscriber">Sub</option>
+                  <option value="viewer">Todos</option>
+                </select>
+              </div>
+            </div>
+-->
+
+            <div style="display:flex;justify-content:center;margin-top:14px">
+              <button type="submit" class="btn btn-primary" id="saveBtn">Salvar Configurações</button>
+            </div>
           </form>
-          
         </div>
       </div>
-      <br>
-      <button class="btn-primary" onclick="openDonationModal()">Apoie o Servidor (Live Pix)</button>
-      <br>
-      <br>
-      <a href="/logout" style="color:#00ff00; text-decoration: none; font-weight: bold;">Logout</a>
-    </div>
-  </section>
 
-  <!-- Botão flutuante de link do overlay (apenas para usuários logados) -->
-  <button class="floating-btn" id="floatingOverlayBtn" onclick="openOverlayLinkModal()">🔗</button>
+      <aside class="side">
+        <div class="panel card">
+          <h3>Informações</h3>
+          <p id="usernameInfo">Carregando...</p>
+          <div class="actions">
+            <button class="btn btn-ghost" id="overlayLinkBtn">Obter link do overlay</button>
+            <button class="btn btn-ghost" id="addChannelBtn">Adicionar canal</button>
+          </div>
+        </div>
 
-  <!-- Modal de Doação -->
-  <div id="donationModal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeDonationModal()">&times;</span>
-      <h2>Doe para Manter o Servidor Ativo</h2>
-      <p>Se você deseja apoiar o servidor, por favor, doe via Live Pix!</p>
-      <a href="https://livepix.gg/rafael020703" target="_blank">
-        <img src="livepix_qrcode.png" alt="QR Code Live Pix" style="width:100%; max-width:250px; margin-top:20px;">
-      </a>
-      <p><a href="https://livepix.gg/rafael020703" target="_blank" style="color:#00ff00;">Clique aqui para doar via Live Pix</a></p>
+        <div class="panel card">
+          <h3>Ajuda rápida</h3>
+          <p>Use os switches para ativar/desativar comandos. O select define quem pode usar o comando.</p>
+        </div>
+        <div class="panel card">
+          <center>
+            <h2>DONATE!</h2>
+            <p>Se você deseja apoiar o projeto, por favor, doe via Live Pix!</p>
+            <a href="https://livepix.gg/rafael020703" target="_blank">
+
+              <img src="livepix_qrcode.png" alt="QR Code Live Pix"
+                style="width:100%; max-width:250px; margin-top:20px;">
+
+            </a>
+            <p><a href="https://livepix.gg/rafael020703" target="_blank" style="color:#00ff00;">Clique aqui para doar
+                via Live Pix</a></p>
+          </center>
+        </div>
+      </aside>
     </div>
+
+    <footer>
+      Feito para gerenciamento rápido dos comandos do bot.
+    </footer>
   </div>
 
-  <!-- Modal para exibir o link do overlay -->
-  <div id="overlayLinkModal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeOverlayLinkModal()">&times;</span>
-      <h3>Link do Overlay</h3>
-      <input type="text" id="overlayLinkInput" readonly>
-      <button onclick="copyOverlayLink()">Copiar Link</button>
-    </div>
+  <!-- Notification modal -->
+  <div id="notifyModal" role="status" aria-live="polite"></div>
+
+<!-- Overlay link modal (reaproveitado) -->
+<div id="overlayLinkModal"
+  style="display:none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9998; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid rgba(2, 0, 0, 0.400); min-width: 400px; max-width: 600px; height: auto;">
+  <div style="margin-bottom: 12px; font-weight: 600; color: #bfffd6; font-size: 18px;">Link do Overlay</div>
+  <input id="overlayLinkInput" readonly
+    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.753); background: transparent; color: #eafaf1; font-size: 16px;" />
+  <div style="margin-top: 15px; text-align: right;">
+    <button class="btn btn-primary" id="copyOverlayBtn" style="padding: 10px 20px; font-size: 16px;">Copiar</button>
   </div>
+</div>
+
 
   <script>
-      // Quando a página for carregada, busca /get-config e preenche tudo (checkboxes e selects)
-  document.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const response = await fetch('/get-config');
-      if (!response.ok) throw new Error('não autenticado');
-
-      const config = await response.json();
-      const cmds = ['watch', 'stop', 'replay', 'so', 'clip'];
-
-      cmds.forEach(cmd => {
-        const cb = document.getElementById(cmd + 'Enabled');
-        const sel = document.getElementById(cmd);
-        // marca o checkbox de habilitado conforme veio do back
-        if (config.allowedCommands[cmd] && typeof config.allowedCommands[cmd].enabled === 'boolean') {
-          cb.checked = config.allowedCommands[cmd].enabled;
-        }
-        // define o select conforme veio do back
-        if (config.allowedCommands[cmd] && Array.isArray(config.allowedCommands[cmd].roles)) {
-          sel.value = config.allowedCommands[cmd].roles[0] || sel.value;
-        }
-      });
-
-      // exibe UI de pós-login
-      document.getElementById('preLogin').style.display = 'none';
-      document.getElementById('postLogin').style.display = 'block';
-      document.getElementById('usernameDisplay').textContent = config.username || 'seuCanal';
-      document.getElementById('floatingOverlayBtn').style.display = 'flex';
-
-      // adiciona canal monitorado (caso não exista)
-      const userChannel = (config.username || 'seuCanal').toLowerCase();
-      await fetch('/add-channel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: userChannel })
-      });
-
-    } catch (err) {
-      console.error('Erro ao verificar autenticação:', err);
-      // mantém UI de pré-login
-      document.getElementById('preLogin').style.display = 'block';
-      document.getElementById('postLogin').style.display = 'none';
+    // Utility: show notification modal for 5s
+    let notifyTimeout;
+    function showNotification(message, type = 'info', duration = 5000) {
+      const el = document.getElementById('notifyModal');
+      el.textContent = message;
+      el.className = ''; // reset
+      if (type === 'success') el.classList.add('success');
+      el.style.display = 'block';
+      clearTimeout(notifyTimeout);
+      notifyTimeout = setTimeout(() => el.style.display = 'none', duration);
     }
-  });
 
-  // Ao submeter, envia exatamente a mesma estrutura booleana + array de roles
-  document.getElementById('config-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const cmds = ['watch', 'stop', 'replay', 'so', 'clip'];
-    const allowedCommands = {};
+    // enable/disable select based on toggle, and add disabled class to card
+    function bindToggle(cmd) {
+      const cb = document.getElementById(cmd + 'Enabled');
+      const sel = document.getElementById(cmd);
+      const card = document.querySelector(`.control-card[data-cmd="${cmd}"]`);
+      if (!cb || !sel || !card) return;
+      function apply() {
+        sel.disabled = !cb.checked;
+        if (!cb.checked) card.classList.add('disabled'); else card.classList.remove('disabled');
+      }
+      cb.addEventListener('change', apply);
+      apply();
+    }
 
-    cmds.forEach(cmd => {
-      allowedCommands[cmd] = {
-        enabled: document.getElementById(cmd + 'Enabled').checked,
-        roles: [document.getElementById(cmd).value]
-      };
+    // Gather cmds
+    const CMDS = ['watch', 'stop', 'replay', 'repeat', 'so', 'clip'];
+
+    // On load: fetch config
+    document.addEventListener('DOMContentLoaded', async () => {
+      CMDS.forEach(bindToggle);
+
+      try {
+        const response = await fetch('/get-config', { method: 'GET', credentials: 'include' });
+        if (response.status === 401) {
+          // not authenticated — redirect to auth flow
+          window.location.href = '/auth/twitch';
+          return;
+        }
+        if (!response.ok) throw new Error('Erro ao obter configurações');
+        const config = await response.json();
+
+        // username
+        document.getElementById('usernameInfo').textContent = config.username || '—';
+        // fill each cmd: enabled + roles[0]
+        CMDS.forEach(cmd => {
+          const cb = document.getElementById(cmd + 'Enabled');
+          const sel = document.getElementById(cmd);
+          const card = document.querySelector(`.control-card[data-cmd="${cmd}"]`);
+          const saved = config.allowedCommands?.[cmd];
+          if (saved) {
+            if (typeof saved.enabled === 'boolean' && cb) cb.checked = saved.enabled;
+            if (Array.isArray(saved.roles) && sel) sel.value = saved.roles[0] || sel.value;
+          } else {
+            if (cb) cb.checked = false;
+          }
+          // apply visuals (enable/disable select)
+          if (cb && sel) sel.disabled = !cb.checked;
+          if (card) {
+            if (cb && !cb.checked) card.classList.add('disabled'); else card.classList.remove('disabled');
+          }
+        });
+
+        // ensure the overlay button shows correct link when clicked
+        document.getElementById('overlayLinkBtn').addEventListener('click', () => {
+          const baseUrl = window.location.origin;
+          const channel = (config.username || 'seuCanal').toLowerCase();
+          const overlayLink = `${baseUrl}/overlay/${channel}`;
+          document.getElementById('overlayLinkInput').value = overlayLink;
+          document.getElementById('overlayLinkModal').style.display = 'block';
+        });
+
+        // copy overlay
+        document.getElementById('copyOverlayBtn').addEventListener('click', async () => {
+          const input = document.getElementById('overlayLinkInput');
+          input.select();
+          try {
+            await navigator.clipboard.writeText(input.value);
+            showNotification('Link copiado para a área de transferência', 'success', 5000);
+          } catch {
+            // fallback
+            input.setSelectionRange(0, input.value.length);
+            document.execCommand('copy');
+            showNotification('Link copiado', 'success', 5000);
+          }
+          // auto-close modal after copy
+          setTimeout(() => document.getElementById('overlayLinkModal').style.display = 'none', 600);
+        });
+
+      } catch (err) {
+        console.error('Erro ao carregar config', err);
+        showNotification('Erro ao carregar configurações. Faça login se necessário.', 'info', 6000);
+      }
+
+      // hide overlay modal when clicking outside
+      window.addEventListener('click', (e) => {
+        const modal = document.getElementById('overlayLinkModal');
+        if (modal.style.display === 'block' && !modal.contains(e.target) && e.target.id !== 'overlayLinkBtn') {
+          modal.style.display = 'none';
+        }
+      });
     });
 
-    try {
-      const res = await fetch('/save-config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ allowedCommands })
+    // Save handler
+    document.getElementById('config-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const allowedCommands = {};
+      CMDS.forEach(cmd => {
+        const cb = document.getElementById(cmd + 'Enabled');
+        const sel = document.getElementById(cmd);
+        allowedCommands[cmd] = {
+          enabled: !!(cb && cb.checked),
+          roles: [(sel && sel.value) || 'broadcaster']
+        };
       });
-      const result = await res.json();
-      if (result.success) {
-        alert('Configurações salvas com sucesso!');
-      } else {
-        alert('Erro ao salvar configurações.');
+
+      // disable save btn while saving
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+
+      try {
+        const res = await fetch('/save-config', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ allowedCommands })
+        });
+        const json = await res.json();
+        if (json.success) {
+          showNotification('Configurações salvas com sucesso!', 'success', 5000);
+        } else {
+          showNotification('Erro ao salvar configurações', 'info', 5000);
+        }
+      } catch (err) {
+        console.error('Erro ao salvar config', err);
+        showNotification('Erro ao salvar (verifique console)', 'info', 5000);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar Configurações';
       }
-    } catch (error) {
-      console.error('Erro ao salvar config:', error);
-      alert('Erro ao salvar configurações.');
-    }
-  });
+    });
 
-    // Modal de Doação
-    function openDonationModal() {
-      document.getElementById('donationModal').style.display = 'flex';
-    }
-    function closeDonationModal() {
-      document.getElementById('donationModal').style.display = 'none';
-    }
-
-    // Modal do Link do Overlay
-    function openOverlayLinkModal() {
-      const baseUrl = window.location.origin;
-      let channel = document.getElementById('usernameDisplay').textContent || "seuCanal";
-      const overlayLink = `${baseUrl}/overlay/${channel.toLowerCase()}`;
-      document.getElementById('overlayLinkInput').value = overlayLink;
-      document.getElementById('overlayLinkModal').style.display = 'flex';
-    }
-    function closeOverlayLinkModal() {
-      document.getElementById('overlayLinkModal').style.display = 'none';
-    }
-    function copyOverlayLink() {
-      const input = document.getElementById('overlayLinkInput');
-      input.select();
-      document.execCommand("copy");
-      alert("Link copiado!");
-    }
+    // quick action: add-channel (reenvia /add-channel para garantir monitoramento)
+    document.getElementById('addChannelBtn').addEventListener('click', async () => {
+      try {
+        // pega username atual mostrado
+        const username = document.getElementById('usernameInfo').textContent || '';
+        if (!username || username === '—') { showNotification('Usuário não carregado', 'info'); return; }
+        const chan = username.toLowerCase();
+        const r = await fetch('/add-channel', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel: chan })
+        });
+        const j = await r.json();
+        if (j.success) showNotification('Canal adicionado/monitorado', 'success');
+        else showNotification('Erro ao adicionar canal', 'info');
+      } catch (err) {
+        console.error(err);
+        showNotification('Erro ao adicionar canal', 'info');
+      }
+    });
   </script>
 </body>
+
 </html>

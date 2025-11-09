@@ -58,8 +58,20 @@ passport.use(new TwitchStrategy({
 }));
 function ensureAuth(req, res, next) {
   if (req.isAuthenticated()) return next();
-  // Redireciona direto para autenticação, sem tela intermediária
-  return passport.authenticate('twitch')(req, res, next);
+
+  // Detecta requisições que não querem HTML (fetch/XHR/API)
+  const accept = req.headers.accept || '';
+  const isAjaxLike = req.xhr
+    || (req.headers['x-requested-with'] === 'XMLHttpRequest')
+    || (accept && accept.indexOf('text/html') === -1); // se não aceita HTML, trata como API
+
+  if (isAjaxLike) {
+    // responde 401 para chamadas AJAX/fetch — evita redirect para Twitch e CORS
+    return res.status(401).json({ error: 'not_authenticated' });
+  }
+
+  // caso contrário, redireciona o browser para iniciar o OAuth
+  return res.redirect('/auth/twitch');
 }
 
 // ————— Configs e Canais (unificado) —————
@@ -85,15 +97,47 @@ const defaultConfig = {
   }
 };
 
+// helper: retorna uma cópia profunda das allowedCommands padrão
+function cloneDefaultAllowedCommands() {
+  // usa JSON para deep clone simples (suficiente aqui)
+  return JSON.parse(JSON.stringify(defaultConfig.allowedCommands));
+}
+
 // ————— Rotas —————
-app.get('/', ensureAuth, (req, res) => {
+// Root: se não autenticado → inicia OAuth; se autenticado → dashboard
+app.get('/', (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect('/auth/twitch');
+  return res.redirect('/dashboard');
+});
+
+// Página de login simples (usada como failureRedirect)
+app.get('/login', (req, res) => {
+  // página mínima com link para iniciar OAuth; pode ser trocada por um arquivo estático se preferir
+  res.send(`
+    <!doctype html>
+    <html>
+      <head><meta charset="utf-8"><title>Login - TwitchClips</title></head>
+      <body style="font-family: Arial, sans-serif; text-align:center; padding:40px;">
+        <h2>Conecte com Twitch</h2>
+        <p><a href="/auth/twitch" style="padding:12px 18px; background:#9146FF; color:#fff; border-radius:6px; text-decoration:none;">Login com Twitch</a></p>
+      </body>
+    </html>
+  `);
+});
+
+// Dashboard (protegido) — serve a UI principal
+app.get('/dashboard', ensureAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
+
+// OAuth routes
 app.get('/auth/twitch', passport.authenticate('twitch'));
 app.get('/auth/twitch/callback',
-  passport.authenticate('twitch', { failureRedirect: '/' }),
-  (req, res) => res.redirect('/')
+  passport.authenticate('twitch', { failureRedirect: '/login' }),
+  (req, res) => res.redirect('/dashboard')
 );
+
+// logout mantém a mesma lógica existente
 app.get('/logout', (req, res, next) =>
   req.logout(err => err ? next(err) : req.session.destroy(() => res.redirect('/')))
 );
@@ -118,7 +162,7 @@ app.post('/add-channel', ensureAuth, (req, res) => {
     channelsToMonitor.push(chan);
     // Cria config padrão se não existir
     if (!channelConfigs[chan]) {
-      channelConfigs[chan] = { allowedCommands: defaultConfig.allowedCommands };
+      channelConfigs[chan] = { allowedCommands: cloneDefaultAllowedCommands() };
     }
     fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
     client.join(chan).catch(console.error);
@@ -299,6 +343,8 @@ try {
   // — !repeat: modo contínuo para um usuário
 const rep = message.match(/^!repeat\s+@?(\w+)/i);
 if (rep) {
+  // respeita configuração e permissões do canal
+  if (!cfg.allowedCommands.repeat.enabled || !isUserAllowed(tags, cfg.allowedCommands.repeat.roles)) return;
   const user = rep[1].toLowerCase();
   repeatCfg[chan] = user;
   console.log(`[${chan}] modo repeat ativado para ${user}`);
