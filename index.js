@@ -431,7 +431,17 @@ async function queueUserClip(chan, user) {
 
 // ————— toca próximo —————
 function playNext(chan) {
+  // garante inicialização das estruturas por canal
+  clipQueues[chan]       ??= [];
+  isPlaying[chan]        ??= false;
+  playedSo[chan]         ??= [];
+  playedUserClips[chan]  ??= [];
+  lastClip[chan]         ??= null;
+  repeatCfg[chan]        ??= null;
+
+  // se já está tocando ou não há fila, não faz nada
   if (isPlaying[chan] || !clipQueues[chan].length) return;
+
   const clip = clipQueues[chan].shift();
   lastClip[chan]  = clip;
   isPlaying[chan] = true;
@@ -442,19 +452,34 @@ function playNext(chan) {
 // ————— WebSocket —————
 io.on('connection', socket => {
   let chan = socket.handshake.query.channel?.replace('#','');
-  if (!chan) return;
-  socket.join(chan);
-  isPlaying[chan] = false;
+  if (!chan) {
+    // se não veio canal, fecha a conexão
+    socket.disconnect(true);
+    return;
+  }
 
+  socket.join(chan);
+
+  // Inicializa estruturas do canal caso ainda não existam
+  clipQueues[chan]       ??= [];
+  isPlaying[chan]        ??= false;
+  playedSo[chan]         ??= [];
+  playedUserClips[chan]  ??= [];
+  lastClip[chan]         ??= null;
+  repeatCfg[chan]        ??= null;
+
+  // Quando o overlay informar que um clipe finalizou, marca como não tocando e tenta tocar o próximo
   socket.on('clipFinalizado', async () => {
     isPlaying[chan] = false;
-    // se modo repeat ativo, enfileira mais um
-    if (repeatCfg[chan]) {
-      await queueUserClip(chan, repeatCfg[chan]);
-    }
+    // pequena proteção — se não existir fila, apenas retorna
+    if (!clipQueues[chan] || !clipQueues[chan].length) return;
+    // tenta tocar o próximo
     playNext(chan);
   });
-  socket.on('fecharOverlay', () => {}); // só para enviar
+
+  socket.on('fecharOverlay', () => {
+    // manter se quiser lógica extra no futuro
+  });
 });
 
 // ————— Inicia —————
