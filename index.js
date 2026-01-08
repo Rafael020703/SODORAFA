@@ -37,11 +37,54 @@ const app    = express();
 const server = http.createServer(app);
 const io     = new Server(server);
 
+// ————— Middleware de segurança e otimização —————
+app.set('trust proxy', 1);
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Cache estático (1 dia)
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true
+}));
+
+// Rate limiting simples (100 req/min por IP)
+const rateLimit = new Map();
+app.use((req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const windowMs = 60000; // 1 minuto
+  const max = 100;
+  
+  if (!rateLimit.has(ip)) {
+    rateLimit.set(ip, []);
+  }
+  
+  const requests = rateLimit.get(ip).filter(time => now - time < windowMs);
+  
+  if (requests.length >= max) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+  
+  requests.push(now);
+  rateLimit.set(ip, requests);
+  
+  // Limpar cache a cada 5 minutos
+  if (Math.random() < 0.01) {
+    for (const [key, times] of rateLimit.entries()) {
+      if (times.every(t => now - t > windowMs)) {
+        rateLimit.delete(key);
+      }
+    }
+  }
+  
+  next();
+});
+
 app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
 
 // ————— OAuth Twitch —————
 passport.serializeUser((user, done) =>
@@ -54,6 +97,8 @@ passport.use(new TwitchStrategy({
   callbackURL:  CALLBACK_URL,
   scope:        'user:read:email clips:edit'
 }, (accessToken, refreshToken, profile, done) => {
+  console.log('🎉 Twitch OAuth callback executado');
+  console.log('👤 Perfil:', profile?.display_name || profile?.username);
   profile.accessToken = accessToken;
   return done(null, profile);
 }));
@@ -132,10 +177,24 @@ app.get('/dashboard', ensureAuth, (req, res) => {
 });
 
 // OAuth routes
-app.get('/auth/twitch', passport.authenticate('twitch'));
+app.get('/auth/twitch', (req, res, next) => {
+  console.log('🔑 Iniciando autenticação Twitch');
+  console.log('📍 CALLBACK_URL configurado:', CALLBACK_URL);
+  passport.authenticate('twitch')(req, res, next);
+});
 app.get('/auth/twitch/callback',
+  (req, res, next) => {
+    console.log('🔙 Callback recebido da Twitch');
+    console.log('📍 URL completa:', req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log('📋 Query params:', req.query);
+    next();
+  },
   passport.authenticate('twitch', { failureRedirect: '/login' }),
-  (req, res) => res.redirect('/dashboard')
+  (req, res) => {
+    console.log('✅ Autenticação bem-sucedida!');
+    console.log('👤 Usuário:', req.user?.display_name);
+    res.redirect('/dashboard');
+  }
 );
 
 // logout mantém a mesma lógica existente
@@ -156,30 +215,70 @@ app.get('/get-config', ensureAuth, (req, res) => {
 });
 
 // Adiciona canal à lista de monitoramento
-
 app.post('/add-channel', ensureAuth, (req, res) => {
-  const chan = req.body.channel.toLowerCase();
-  if (!channelsToMonitor.includes(chan)) {
-    channelsToMonitor.push(chan);
-    // Cria config padrão se não existir
-    if (!channelConfigs[chan]) {
-      channelConfigs[chan] = { allowedCommands: cloneDefaultAllowedCommands() };
+  try {
+    const chan = (req.body.channel || '').toLowerCase().trim();
+    
+    // Validação
+    if (!chan || chan.length < 3 || chan.length > 25) {
+      return res.status(400).json({ success: false, error: 'invalid_channel_name' });
     }
-    fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
-    client.join(chan).catch(console.error);
+    
+    // Sanitização (apenas letras, números e underscore)
+    if (!/^[a-z0-9_]+$/.test(chan)) {
+      return res.status(400).json({ success: false, error: 'invalid_characters' });
+    }
+    
+    if (!channelsToMonitor.includes(chan)) {
+      channelsToMonitor.push(chan);
+      // Cria config padrão se não existir
+      if (!channelConfigs[chan]) {
+        channelConfigs[chan] = { allowedCommands: cloneDefaultAllowedCommands() };
+      }
+      fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
+      client.join(chan).catch(err => console.error('Erro ao entrar no canal:', err));
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao adicionar canal:', err);
+    res.status(500).json({ success: false, error: 'internal_error' });
   }
-  res.json({ success: true });
 });
 
 // Salva configurações vindas do front
-
 app.post('/save-config', ensureAuth, (req, res) => {
-  const chan = req.user.display_name.toLowerCase();
-  channelConfigs[chan] = {
-    allowedCommands: req.body.allowedCommands
-  };
-  fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
-  res.json({ success: true });
+  try {
+    const chan = req.user.display_name.toLowerCase();
+    const { allowedCommands } = req.body;
+    
+    // Validação básica
+    if (!allowedCommands || typeof allowedCommands !== 'object') {
+      return res.status(400).json({ success: false, error: 'invalid_config' });
+    }
+    
+    // Validar estrutura de cada comando
+    const validRoles = ['broadcaster', 'moderator', 'vip', 'subscriber', 'viewer'];
+    const validCommands = ['watch', 'replay', 'repeat', 'so', 'stop', 'clip'];
+    
+    for (const [cmd, config] of Object.entries(allowedCommands)) {
+      if (!validCommands.includes(cmd)) continue;
+      
+      if (typeof config.enabled !== 'boolean' || !Array.isArray(config.roles)) {
+        return res.status(400).json({ success: false, error: 'invalid_command_config' });
+      }
+      
+      if (!config.roles.every(role => validRoles.includes(role))) {
+        return res.status(400).json({ success: false, error: 'invalid_role' });
+      }
+    }
+    
+    channelConfigs[chan] = { allowedCommands };
+    fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erro ao salvar config:', err);
+    res.status(500).json({ success: false, error: 'internal_error' });
+  }
 });
 // Rota pública para verificar se existe configuração para um overlay de canal
 app.get('/overlay/check/:channel', (req, res) => {
@@ -196,9 +295,98 @@ app.get('/overlay/:channel', (req, res) =>
   res.sendFile(path.join(__dirname, 'public/overlay.html'))
 );
 
+// Página pública que reproduz clipes infinitamente para qualquer canal (não requer cadastro)
+app.get('/autoclipes/:channel', (req, res) =>
+  res.sendFile(path.join(__dirname, 'public/autoclipes.html'))
+);
+
+// Endpoint público: retorna clipes de um canal via Twitch API (usa token do servidor)
+app.get('/api/public/clips/:channel', async (req, res) => {
+  const chan = (req.params.channel || '').toLowerCase();
+  if (!chan) return res.status(400).json({ ok: false, message: 'missing_channel' });
+  try {
+    const ud = await getUserData(chan);
+    if (!ud) return res.status(404).json({ ok: false, message: 'user_not_found' });
+    const clips = await getAllUserClips(ud.id);
+    const out = (clips || []).map(c => ({ id: c.id, duration: c.duration, url: c.url, thumbnail: c.thumbnail_url }));
+    return res.json(out);
+  } catch (err) {
+    console.error('Erro em /api/public/clips/:channel', err);
+    return res.status(500).json({ ok: false, message: 'internal_error' });
+  }
+});
+
+// ————— Endpoints de monitoramento —————
+app.get('/health', (req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
+    },
+    channels: channelsToMonitor.length,
+    cache: {
+      users: userDataCache.size,
+      rateLimit: rateLimit.size
+    },
+    twitch: {
+      connected: client?.readyState?.() === 'OPEN',
+      tokenValid: TWITCH_TOKEN && Date.now() < tokenExpiresAt
+    }
+  };
+  res.json(health);
+});
+
+app.get('/metrics', ensureAuth, (req, res) => {
+  const metrics = {
+    queues: Object.fromEntries(
+      Object.entries(clipQueues).map(([chan, queue]) => [chan, queue.length])
+    ),
+    playing: Object.fromEntries(
+      Object.entries(isPlaying).filter(([_, playing]) => playing)
+    ),
+    repeatMode: Object.fromEntries(
+      Object.entries(repeatCfg).filter(([_, user]) => user)
+    )
+  };
+  res.json(metrics);
+});
+
 // ————— Twitch API Helpers —————
 let TWITCH_TOKEN   = null;
 let tokenExpiresAt = 0;
+
+// Cache para dados de usuários (5 minutos)
+const userDataCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000;
+
+function getCachedData(key) {
+  const cached = userDataCache.get(key);
+  if (cached && Date.now() < cached.expires) {
+    return cached.data;
+  }
+  userDataCache.delete(key);
+  return null;
+}
+
+function setCachedData(key, data, ttl = CACHE_TTL) {
+  userDataCache.set(key, {
+    data,
+    expires: Date.now() + ttl
+  });
+}
+
+// Limpar cache periodicamente
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of userDataCache.entries()) {
+    if (now >= value.expires) {
+      userDataCache.delete(key);
+    }
+  }
+}, 60000); // Limpar a cada minuto
 
 async function updateAccessToken() {
   const url = `https://id.twitch.tv/oauth2/token` +
@@ -225,6 +413,12 @@ async function updateAccessToken() {
 
 async function getUserData(username) {
   if (!username) return null;
+  
+  // Verificar cache primeiro
+  const cacheKey = `user_${username.toLowerCase()}`;
+  const cached = getCachedData(cacheKey);
+  if (cached) return cached;
+  
   if (!TWITCH_TOKEN || Date.now() >= tokenExpiresAt - 60000) {
     await updateAccessToken();
   }
@@ -238,7 +432,11 @@ async function getUserData(username) {
       console.warn('getUserData: resposta inesperada', resp.status, json);
       return null;
     }
-    return json.data[0] || null;
+    const userData = json.data[0] || null;
+    if (userData) {
+      setCachedData(cacheKey, userData);
+    }
+    return userData;
   } catch (err) {
     console.error('getUserData: exceção', err);
     return null;
@@ -247,6 +445,12 @@ async function getUserData(username) {
 
 async function getAllUserClips(userId) {
   if (!userId) return [];
+  
+  // Cache de clips por usuário (10 minutos)
+  const cacheKey = `clips_${userId}`;
+  const cached = getCachedData(cacheKey);
+  if (cached) return cached;
+  
   let all = [], cursor = null;
   try {
     do {
@@ -260,6 +464,11 @@ async function getAllUserClips(userId) {
       if (Array.isArray(json.data)) all.push(...json.data);
       cursor = json.pagination?.cursor || null;
     } while (cursor);
+    
+    // Cache por 10 minutos
+    if (all.length > 0) {
+      setCachedData(cacheKey, all, 10 * 60 * 1000);
+    }
   } catch (err) {
     console.error('getAllUserClips: exceção', err);
   }
@@ -309,11 +518,39 @@ async function createClip(broadcasterId, token) {
 
 // ————— TMI.js Bot —————
 const client = new tmi.Client({
-  options: { debug: true },
+  options: { 
+    debug: false,
+    messagesLogLevel: 'info'
+  },
+  connection: {
+    reconnect: true,
+    maxReconnectAttempts: 10,
+    maxReconnectInterval: 30000,
+    reconnectDecay: 1.5,
+    reconnectInterval: 1000,
+    secure: true,
+    timeout: 9000
+  },
   identity:{ username: BOT_USERNAME, password: BOT_OAUTH },
   channels: channelsToMonitor
 });
-client.connect().catch(console.error);
+
+client.on('connected', (addr, port) => {
+  console.log(`✅ Bot conectado ao Twitch IRC (${addr}:${port})`);
+});
+
+client.on('disconnected', (reason) => {
+  console.warn(`⚠️ Bot desconectado:`, reason);
+});
+
+client.on('reconnect', () => {
+  console.log('🔄 Reconectando ao Twitch IRC...');
+});
+
+client.connect().catch(err => {
+  console.error('❌ Erro ao conectar bot TMI:', err);
+  process.exit(1);
+});
 
 // toca som ao ban
 client.on('ban', (chanFull, user) => {
@@ -375,11 +612,21 @@ try {
 } catch {}
 
     const info = await getClipInfo(id);
-    if (!info) return;
-    console.log(`[${chan}] !watch -> ${info.url}`);
+    if (!info) {
+      console.warn(`⚠️ [${chan}] !watch: clip não encontrado: ${id}`);
+      return;
+    }
+    const thumbnail = info.thumbnail_url || null;
+    let videoUrl = null;
+    if (thumbnail) {
+      // tenta gerar alguns candidatos comuns de MP4 a partir da URL de preview
+      const candidate = thumbnail.replace(/preview.*\.(jpg|png)$/,'preview.mp4').replace(/-preview.*\.(jpg|png)$/,'.mp4');
+      if (candidate && candidate.endsWith('.mp4')) videoUrl = candidate;
+    }
+    console.log(`👁️ [${chan}] !watch -> ${info.url} (video: ${videoUrl || 'n/a'})`);
     clipQueues[chan] = [];
     repeatCfg[chan]  = null;
-    lastClip[chan]   = { id, duration: info.duration, url: info.url };
+    lastClip[chan]   = { id, duration: info.duration, url: info.url, video: videoUrl, thumbnail };
     isPlaying[chan]  = true;
     io.to(chan).emit('novoClip', lastClip[chan]);
     return;
@@ -403,10 +650,19 @@ if (rep) {
   // respeita configuração e permissões do canal
   if (!cfg.allowedCommands.repeat.enabled || !isUserAllowed(tags, cfg.allowedCommands.repeat.roles)) return;
   const user = rep[1].toLowerCase();
+  
+  // Validação do username
+  if (user.length < 3 || user.length > 25 || !/^[a-z0-9_]+$/.test(user)) {
+    console.warn(`[${chan}] !repeat: username inválido: ${user}`);
+    return;
+  }
+  
   repeatCfg[chan] = user;
-  console.log(`[${chan}] modo repeat ativado para ${user}`);
+  console.log(`🔁 [${chan}] Modo repeat ativado para ${user}`);
   // já enfileira o primeiro
-  await queueUserClip(chan, user);
+  await queueUserClip(chan, user).catch(err => {
+    console.error(`❌ [${chan}] Erro ao enfileirar clip de ${user}:`, err);
+  });
   return;
 }
 
@@ -434,7 +690,18 @@ if (rep) {
   // — !so: shoutout aleatório
   if (/^!so\s+@?(\w+)/i.test(message)) {
     if (!cfg.allowedCommands.so.enabled || !isUserAllowed(tags, cfg.allowedCommands.so.roles)) return;
-    queueUserClip(chan, message.match(/^!so\s+@?(\w+)/i)[1].toLowerCase());
+    const targetUser = message.match(/^!so\s+@?(\w+)/i)[1].toLowerCase();
+    
+    // Validação
+    if (targetUser.length < 3 || targetUser.length > 25 || !/^[a-z0-9_]+$/.test(targetUser)) {
+      console.warn(`[${chan}] !so: username inválido: ${targetUser}`);
+      return;
+    }
+    
+    console.log(`👋 [${chan}] !so ${targetUser}`);
+    queueUserClip(chan, targetUser).catch(err => {
+      console.error(`❌ [${chan}] Erro ao enfileirar clip de ${targetUser}:`, err);
+    });
     return;
   }
 
@@ -459,11 +726,21 @@ if (clipId) {
 // ————— montagem de fila —————
 async function queueUserClip(chan, user) {
   const ud    = await getUserData(user);
-  if (!ud) return;
+  if (!ud) {
+    console.warn(`⚠️ [${chan}] Usuário não encontrado: ${user}`);
+    return;
+  }
+  
   const clips = await getAllUserClips(ud.id);
+  if (!clips || clips.length === 0) {
+    console.warn(`⚠️ [${chan}] ${user} não tem clips disponíveis`);
+    return;
+  }
+  
   // filtra já tocados em so/repeat
   const pool  = clips.filter(c => !playedSo[chan].includes(c.id) && !playedUserClips[chan].includes(c.id));
   if (!pool.length) {
+    console.log(`🔄 [${chan}] Resetando histórico de clips de ${user}`);
     playedSo[chan] = [];
     playedUserClips[chan] = [];
     return queueUserClip(chan, user);
@@ -471,11 +748,29 @@ async function queueUserClip(chan, user) {
   const pick = pool[Math.floor(Math.random()*pool.length)];
   playedSo[chan].push(pick.id);
   if (repeatCfg[chan] === user) playedUserClips[chan].push(pick.id);
-  clipQueues[chan].push({ id: pick.id, duration: pick.duration, url: pick.url });
+  
+  // Limitar histórico
+  if (playedSo[chan].length > MAX_HISTORY) {
+    playedSo[chan] = playedSo[chan].slice(-MAX_HISTORY);
+  }
+  if (playedUserClips[chan].length > MAX_HISTORY) {
+    playedUserClips[chan] = playedUserClips[chan].slice(-MAX_HISTORY);
+  }
+  
+  const thumbnail = pick.thumbnail_url || null;
+  let videoUrl = null;
+  if (thumbnail) {
+    const candidate = thumbnail.replace(/preview.*\.(jpg|png)$/,'preview.mp4').replace(/-preview.*\.(jpg|png)$/,'.mp4');
+    if (candidate && candidate.endsWith('.mp4')) videoUrl = candidate;
+  }
+  clipQueues[chan].push({ id: pick.id, duration: pick.duration, url: pick.url, video: videoUrl, thumbnail });
+  console.log(`➕ [${chan}] Clip de ${user} adicionado à fila (${clipQueues[chan].length} na fila)`);
   playNext(chan);
 }
 
 // ————— toca próximo —————
+const playNextDebounce = new Map();
+
 function playNext(chan) {
   // garante inicialização das estruturas por canal
   clipQueues[chan]       ??= [];
@@ -488,22 +783,37 @@ function playNext(chan) {
   // se já está tocando ou não há fila, não faz nada
   if (isPlaying[chan] || !clipQueues[chan].length) return;
 
-  const clip = clipQueues[chan].shift();
-  lastClip[chan]  = clip;
-  isPlaying[chan] = true;
-  console.log(`Reproduzindo em ${chan} → ${clip.url}`);
-  io.to(chan).emit('novoClip', clip);
+  // Debounce para evitar múltiplas execuções simultâneas
+  if (playNextDebounce.has(chan)) {
+    clearTimeout(playNextDebounce.get(chan));
+  }
+  
+  const timeoutId = setTimeout(() => {
+    playNextDebounce.delete(chan);
+    
+    if (isPlaying[chan] || !clipQueues[chan].length) return;
+    
+    const clip = clipQueues[chan].shift();
+    lastClip[chan]  = clip;
+    isPlaying[chan] = true;
+    console.log(`▶️ [${chan}] Reproduzindo → ${clip.url} (video: ${clip.video ? 'sim' : 'não'})`);
+    console.debug('▶️ clip object:', clip);
+    io.to(chan).emit('novoClip', clip);
+  }, 100);
+  
+  playNextDebounce.set(chan, timeoutId);
 }
 
 // ————— WebSocket —————
 io.on('connection', socket => {
   let chan = socket.handshake.query.channel?.replace('#','');
   if (!chan) {
-    // se não veio canal, fecha a conexão
+    console.warn('⚠️ Conexão WebSocket sem canal especificado');
     socket.disconnect(true);
     return;
   }
 
+  console.log(`🔌 [${chan}] Nova conexão WebSocket`);
   socket.join(chan);
 
   // Inicializa estruturas do canal caso ainda não existam
@@ -514,21 +824,83 @@ io.on('connection', socket => {
   lastClip[chan]         ??= null;
   repeatCfg[chan]        ??= null;
 
-  // Quando o overlay informar que um clipe finalizou, marca como não tocando e tenta tocar o próximo
+  // Quando o overlay informar que um clipe finalizou
   socket.on('clipFinalizado', async () => {
+    console.log(`✔️ [${chan}] Clip finalizado`);
     isPlaying[chan] = false;
-    // pequena proteção — se não existir fila, apenas retorna
-    if (!clipQueues[chan] || !clipQueues[chan].length) return;
-    // tenta tocar o próximo
-    playNext(chan);
+    
+    // Se estiver em modo repeat, enfileira próximo
+    if (repeatCfg[chan]) {
+      await queueUserClip(chan, repeatCfg[chan]).catch(err => {
+        console.error(`❌ [${chan}] Erro no repeat:`, err);
+      });
+    }
+    
+    // Tenta tocar o próximo da fila
+    if (clipQueues[chan] && clipQueues[chan].length > 0) {
+      playNext(chan);
+    }
   });
 
   socket.on('fecharOverlay', () => {
-    // manter se quiser lógica extra no futuro
+    console.log(`🚫 [${chan}] Overlay fechado`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log(`🔌 [${chan}] WebSocket desconectado`);
   });
 });
 
 // ————— Inicia —————
-server.listen(PORT, () =>
-  console.log(`Servidor rodando em http://localhost:${PORT}`)
-);
+server.listen(PORT, () => {
+  console.log('\n🚀 ========================================');
+  console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+  console.log('🔑 TWITCH_CLIENT_ID:', TWITCH_CLIENT_ID);
+  console.log('📍 CALLBACK_URL:', CALLBACK_URL);
+  console.log('🎯 Canais monitorados:', channelsToMonitor.length);
+  console.log('========================================\n');
+});
+
+// ————— Graceful Shutdown —————
+const gracefulShutdown = async (signal) => {
+  console.log(`\n⚠️ Recebido sinal ${signal}, encerrando gracefully...`);
+  
+  // Para de aceitar novas conexões
+  server.close(() => {
+    console.log('✅ Servidor HTTP fechado');
+  });
+  
+  // Desconecta do Twitch IRC
+  if (client) {
+    try {
+      await client.disconnect();
+      console.log('✅ Bot IRC desconectado');
+    } catch (err) {
+      console.error('❌ Erro ao desconectar bot:', err);
+    }
+  }
+  
+  // Salva configurações
+  try {
+    fs.writeFileSync(CHANNELS_CONFIGS_FILE, JSON.stringify(channelConfigs, null, 2));
+    console.log('✅ Configurações salvas');
+  } catch (err) {
+    console.error('❌ Erro ao salvar configurações:', err);
+  }
+  
+  console.log('👋 Encerrando processo...\n');
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Tratamento de erros não capturados
+process.on('uncaughtException', (err) => {
+  console.error('❌ Exceção não capturada:', err);
+  gracefulShutdown('uncaughtException');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Promise rejeitada não tratada:', reason);
+});

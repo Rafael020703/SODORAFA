@@ -78,6 +78,8 @@
   </div>
 
   <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>
+  <!-- Twitch Embed SDK -->
+  <script src="https://embed.twitch.tv/embed/v1.js"></script>
 
   <script>
     (function () {
@@ -92,6 +94,72 @@
 
       const iframe = document.getElementById('twitch-embed');
 
+      // UI: adiciona painel de controle e logs para testar players
+      const ctl = document.createElement('div');
+      ctl.style.position = 'fixed';
+      ctl.style.right = '18px';
+      ctl.style.top = '18px';
+      ctl.style.zIndex = '10000';
+      ctl.style.display = 'flex';
+      ctl.style.flexDirection = 'column';
+      ctl.style.gap = '8px';
+      document.body.appendChild(ctl);
+
+      const log = document.createElement('pre');
+      log.style.width = '320px';
+      log.style.maxHeight = '60vh';
+      log.style.overflow = 'auto';
+      log.style.background = 'rgba(0,0,0,0.6)';
+      log.style.color = '#fff';
+      log.style.padding = '12px';
+      log.style.borderRadius = '8px';
+
+      function write(...args) {
+        const s = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+        log.textContent = s + '\n' + log.textContent;
+        console.log(...args);
+      }
+
+      ctl.appendChild(log);
+
+      function makeBtn(text, onClick) {
+        const b = document.createElement('button');
+        b.textContent = text;
+        b.style.padding = '8px 12px';
+        b.style.borderRadius = '8px';
+        b.style.border = 'none';
+        b.style.background = '#00ff99';
+        b.style.color = '#06221b';
+        b.style.cursor = 'pointer';
+        b.onclick = onClick;
+        ctl.appendChild(b);
+        return b;
+      }
+
+      // area para Twitch SDK player (se precisar)
+      const sdkDiv = document.createElement('div');
+      sdkDiv.id = 'twitch-sdk-player';
+      sdkDiv.style.display = 'none';
+      sdkDiv.style.width = '80vw';
+      sdkDiv.style.height = '45vw';
+      sdkDiv.style.maxWidth = '1280px';
+      sdkDiv.style.maxHeight = '720px';
+      sdkDiv.style.borderRadius = '18px';
+      sdkDiv.style.overflow = 'hidden';
+      sdkDiv.style.marginBottom = '8px';
+      sdkDiv.style.border = '3px solid #00ff99';
+      sdkDiv.style.background = '#000';
+      document.getElementById('clip-container').insertBefore(sdkDiv, iframe);
+
+      let sdkInstance = null;
+
+      function cleanupAll() {
+        try { iframe.style.display = 'none'; iframe.src = ''; } catch(e){}
+        try { player.pause(); player.reset(); player.el().style.display = 'none'; } catch(e){}
+        try { if (sdkInstance && typeof sdkInstance.destroy === 'function') sdkInstance.destroy(); sdkInstance = null; sdkDiv.style.display = 'none'; } catch(e){}
+        try { container.style.display = 'none'; } catch(e){}
+      }
+
       function fecharOverlay() {
         player.pause();
         player.reset();
@@ -105,28 +173,182 @@
       const twitchClipUrl = "https://www.twitch.tv/rafael020703/clip/HotVivaciousSnailCopyThis-bfzeiWEOS4y20tV4";
       const isTwitchClip = twitchClipUrl.includes('twitch.tv');
 
+      // Seu domínio, sem http(s). Ajuste se necessário.
+      const parent = window.location.hostname || 'sodorafa.squareweb.app';
+
       if (isTwitchClip) {
         const slug = twitchClipUrl.split('/clip/')[1];
         if (!slug) {
-          console.error("Slug do clipe não encontrado.");
+          write('Slug do clipe não encontrado.');
           return;
         }
 
-        // Seu domínio, sem http(s)
-        const parent = "sodorafa.squareweb.app";
+        // UI buttons to test different players
+        makeBtn('Twitch SDK', () => tryTwitchSDK(slug, parent));
+        makeBtn('Iframe Embed', () => tryIframeEmbed(slug, parent));
+        makeBtn('Video.js (MP4 candidates)', () => tryVideoJSMp4(slug));
+        makeBtn('Native HTMLVideo (MP4 candidates)', () => tryNativeMp4(slug));
+        makeBtn('Try All (auto)', () => tryAll(slug, parent));
 
-        // Embed com autoplay e sem controles
-        iframe.src = `https://clips.twitch.tv/embed?clip=${slug}&parent=${parent}&autoplay=true&controls=false`;
-        iframe.style.display = 'block';
-        player.el().style.display = 'none';
+        // show initial UI
         container.style.display = 'flex';
+      }
 
-        setTimeout(fecharOverlay, 60000); // Fecha após 60s
+      // --- Player strategies ---
+      async function tryTwitchSDK(slug, parent) {
+        cleanupAll();
+        write('Tentando Twitch SDK para', slug);
+        sdkDiv.style.display = 'block';
+        try {
+          if (!window.Twitch || !Twitch.Player) {
+            write('Twitch SDK indisponível');
+            return false;
+          }
+          sdkInstance = new Twitch.Player('twitch-sdk-player', { clip: slug, autoplay: true, controls: false, muted: true, parent: [parent], width: '100%', height: '100%' });
+          return await waitForPlayEvent(sdkInstance, 'Twitch SDK', slug);
+        } catch (err) {
+          write('Erro Twitch SDK', err);
+          return false;
+        }
+      }
+
+      function tryIframeEmbed(slug, parent) {
+        return new Promise((resolve) => {
+          cleanupAll();
+          write('Tentando Iframe Embed para', slug);
+          container.style.display = 'flex';
+          iframe.style.display = 'block';
+          let played = false;
+
+          function msgHandler(ev) {
+            const data = ev.data;
+            const s = typeof data === 'string' ? data.toLowerCase() : JSON.stringify(data).toLowerCase();
+            if (s.includes('play') || s.includes('playing')) {
+              if (played) return;
+              played = true;
+              write('Iframe postMessage play detectado', slug);
+              window.removeEventListener('message', msgHandler);
+              timeoutId = setTimeout(() => { cleanupAll(); write('Iframe: finalizando por duração'); resolve(true); }, 6000);
+            }
+            if (s.includes('ended') || s.includes('finished') || s.includes('complete')) {
+              write('Iframe postMessage ended detectado', slug);
+              window.removeEventListener('message', msgHandler);
+              cleanupAll(); resolve(true);
+            }
+          }
+          window.addEventListener('message', msgHandler);
+
+          iframe.src = `https://clips.twitch.tv/embed?clip=${slug}&parent=${parent}&autoplay=true&controls=false&muted=true`;
+
+          // fallback onload -> assume playing after short wait
+          iframe.onload = () => {
+            write('Iframe carregado, esperando play...');
+            setTimeout(() => {
+              if (!played) {
+                write('Iframe: sem postMessage, assume play (fallback)');
+                cleanupAll();
+                resolve(true);
+              }
+            }, 1500);
+          };
+
+          // safety
+          setTimeout(() => { if (!played) { window.removeEventListener('message', msgHandler); write('Iframe: timeout sem play'); resolve(false); } }, 10000);
+        });
+      }
+
+      async function tryVideoJSMp4(slug) {
+        cleanupAll();
+        write('Tentando Video.js com MP4s candidatos para', slug);
+        const candidates = mp4CandidatesForSlug(slug);
+        for (const src of candidates) {
+          write('Tentando candidato', src);
+          try {
+            player.src({ src, type: 'video/mp4' });
+            player.el().style.display = 'block';
+            container.style.display = 'flex';
+            const p = player.play();
+            if (p && p.then) {
+              await p.then(() => { write('Video.js playing', src); setTimeout(() => { cleanupAll(); write('Video.js: finalizando por duração'); }, 6000); return true; });
+            } else {
+              write('Video.js play não retornou promessa, assume sucesso', src);
+              return true;
+            }
+          } catch (err) {
+            write('Video.js falhou para', src, err);
+          }
+        }
+        return false;
+      }
+
+      async function tryNativeMp4(slug) {
+        cleanupAll();
+        write('Tentando HTMLVideo (nativo) com MP4s candidatos para', slug);
+        const candidates = mp4CandidatesForSlug(slug);
+        const vid = document.createElement('video');
+        vid.style.width = '80vw';
+        vid.style.height = '45vw';
+        vid.muted = true;
+        vid.playsInline = true;
+        container.appendChild(vid);
+        container.style.display = 'flex';
+        for (const src of candidates) {
+          write('Tentando candidato', src);
+          vid.src = src;
+          vid.load();
+          try {
+            await new Promise((resolve, reject) => {
+              const to = setTimeout(() => { vid.pause(); resolve(false); }, 5000);
+              vid.oncanplay = async () => { clearTimeout(to); try { await vid.play(); write('HTMLVideo playing', src); setTimeout(() => { vid.pause(); vid.remove(); cleanupAll(); write('HTMLVideo: finalizando por duração'); }, 6000); resolve(true); } catch (e) { write('HTMLVideo play error', e); resolve(false); } };
+              vid.onerror = () => { clearTimeout(to); write('HTMLVideo error', src); resolve(false); };
+            }).then(ok => { if (ok) return; });
+            // if success we return
+            if (!vid.parentNode) return true;
+          } catch (e) { write('Erro no HTMLVideo', e); }
+        }
+        try { vid.remove(); } catch(e){}
+        return false;
+      }
+
+      function mp4CandidatesForSlug(slug) {
+        return [
+          `https://static-cdn.jtvnw.net/twitch-clips-thumbnails-prod/${slug}/preview.mp4`,
+          `https://static-cdn.jtvnw.net/twitch-clips-thumbnails-prod/${slug}/preview-480x272.mp4`,
+          `https://clips-media-assets2.twitch.tv/${slug}/preview.mp4`
+        ];
+      }
+
+      function waitForPlayEvent(inst, label, slug, timeout = 8000) {
+        return new Promise((resolve) => {
+          let handled = false;
+          function onPlay() { if (handled) return; handled = true; write(label, 'play event', slug); setTimeout(() => { cleanupAll(); write(label+': finalizando por duração'); }, 6000); resolve(true); }
+          function onEnded() { if (handled) return; handled = true; write(label, 'ended', slug); cleanupAll(); resolve(true); }
+          function onError(err) { if (handled) return; handled = true; write(label, 'error', err); cleanupAll(); resolve(false); }
+          try {
+            inst.addEventListener('play', onPlay);
+            inst.addEventListener('ended', onEnded);
+            inst.addEventListener('error', onError);
+          } catch(e) { write('Erro registrando eventos no', label, e); resolve(false); }
+          setTimeout(() => { if (!handled) { write(label, 'timeout sem play'); resolve(false); } }, timeout);
+        });
+      }
+
+      async function tryAll(slug, parent) {
+        write('Tentando todos os players em sequência...');
+        const a = await tryTwitchSDK(slug, parent);
+        if (a) { write('Sucesso com Twitch SDK'); return; }
+        const b = await tryIframeEmbed(slug, parent);
+        if (b) { write('Sucesso com Iframe'); return; }
+        const c = await tryVideoJSMp4(slug);
+        if (c) { write('Sucesso com Video.js (MP4)'); return; }
+        const d = await tryNativeMp4(slug);
+        if (d) { write('Sucesso com HTMLVideo (MP4)'); return; }
+        write('Nenhum player conseguiu reproduzir automaticamente');
       }
 
       // Permitir fechar com ESC
       document.addEventListener('keydown', (e) => {
-        if (e.key === "Escape") fecharOverlay();
+        if (e.key === "Escape") cleanupAll();
       });
     })();
   </script>

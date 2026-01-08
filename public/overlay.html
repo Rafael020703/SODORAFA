@@ -27,14 +27,14 @@
       width: 100%;
       max-width: 92vw;
       aspect-ratio: 16 / 9;
-      border: 3px solid #00ff99;
+      border: 3px solid #7700e6;
       border-radius: 18px;
-      box-shadow: 0 0 32px #00ff9940, 0 2px 0 #000;
+      box-shadow: 0 0 32px #7700ff40, 0 2px 0 #000;
       transition: box-shadow 0.2s, border 0.2s;
     }
     #twitch-embed:focus {
-      border: 3px solid #00e6e6;
-      box-shadow: 0 0 40px #00e6e655;
+      border: 3px solid #4400ff;
+      box-shadow: 0 0 40px #1900ff8a;
     }
     @media (max-width: 700px) {
       #twitch-embed {
@@ -51,13 +51,18 @@
 </head>
 <body>
   <div id="clip-container">
-    <iframe
-      id="twitch-embed"
-      allowfullscreen
-      allow="autoplay"
-      scrolling="no"
-      style="display: none;"
-    ></iframe>
+    <div style="position:relative;width:100%;max-width:92vw;aspect-ratio:16/9;border-radius:18px;overflow:hidden;">
+      <iframe
+        id="twitch-embed"
+        allowfullscreen
+        allow="autoplay; fullscreen"
+        scrolling="no"
+        style="display: none;width:100%;height:100%;border:1px solid #6f00ff;border-radius:10px;"
+      ></iframe>
+
+      <!-- thumbnail e spinner exibidos enquanto o clip inicia -->
+      </div>
+    </div>
   </div>
 
   <!-- Som de ban -->
@@ -68,13 +73,28 @@
     (async function () {
       const container = document.getElementById('clip-container');
       const iframe    = document.getElementById('twitch-embed');
+      const thumb     = document.getElementById('clip-thumb');
+      const spinner   = document.getElementById('clip-spinner');
       const banAudio  = document.getElementById('ban-sound');
-      let timeoutId;
+
+      // Timeouts e handlers relacionados ao iframe
+      let timeoutId = null;           // timeout de duração do clip
+      let playWaitTimeout = null;     // espera por play após onload
+      let iframeSafetyTimeout = null; // timeout de segurança caso nada aconteça
+      let iframeMessageHandler = null;
+
+      function clearIframeHandlers() {
+        if (playWaitTimeout) { clearTimeout(playWaitTimeout); playWaitTimeout = null; }
+        if (iframeSafetyTimeout) { clearTimeout(iframeSafetyTimeout); iframeSafetyTimeout = null; }
+        if (iframeMessageHandler) { window.removeEventListener('message', iframeMessageHandler); iframeMessageHandler = null; }
+      }
 
       function fecharOverlay() {
         clearTimeout(timeoutId);
-        iframe.src = '';
-        iframe.style.display   = 'none';
+        clearIframeHandlers();
+        try { iframe.src = ''; iframe.style.display = 'none'; } catch(e){}
+        try { thumb.style.display = 'none'; } catch(e){}
+        try { spinner.style.display = 'none'; } catch(e){}
         container.style.display = 'none';
       }
 
@@ -130,22 +150,64 @@
 
       // Recebe novo clipe
       socket.on('novoClip', ({ id, duration }) => {
+        console.log('novoClip recebido', { id, duration });
+        // limpa estados anteriores
         clearTimeout(timeoutId);
-        iframe.src =
-          `https://clips.twitch.tv/embed?clip=${id}` +
-          `&parent=${parent}&autoplay=true&controls=false`;
-        container.style.display = 'flex';
-        iframe.style.display    = 'block';
+        clearIframeHandlers();
 
-        // Timeout só inicia após o carregamento do iframe
-        iframe.onload = () => {
-          clearTimeout(timeoutId);
-          // Buffer de 0.5s para garantir reprodução total
-          timeoutId = setTimeout(() => {
-            fecharOverlay();
-            socket.emit('clipFinalizado');
-          }, (duration + 0.5) * 1000);
+        // não mostramos o overlay ainda — apenas configuramos o iframe
+        try { iframe.style.display = 'none'; } catch(e){}
+
+        // Handler para detectar play/ended via postMessage do player
+        let playDetected = false;
+        iframeMessageHandler = function (ev) {
+          try {
+            const data = ev.data;
+            if (!data) return;
+            const dstr = typeof data === 'string' ? data.toLowerCase() : JSON.stringify(data).toLowerCase();
+            if (!dstr) return;
+            if (dstr.includes('play') || dstr.includes('playing') || dstr.includes('started')) {
+              if (playDetected) return;
+              playDetected = true;
+              console.log('postMessage play detectado para', id);
+              // agora mostramos o overlay — o player já começou
+              try { container.style.display = 'flex'; iframe.style.display = 'block'; } catch(e){}
+              clearIframeHandlers();
+              timeoutId = setTimeout(() => { fecharOverlay(); socket.emit('clipFinalizado'); }, (duration + 1) * 1000);
+            }
+            if (dstr.includes('ended') || dstr.includes('complete') || dstr.includes('finished')) {
+              console.log('postMessage ended detectado para', id);
+              clearIframeHandlers();
+              fecharOverlay();
+              socket.emit('clipFinalizado');
+            }
+          } catch (e) { console.warn('erro ao processar mensagem do iframe', e); }
         };
+        window.addEventListener('message', iframeMessageHandler);
+
+        // onload fallback: se não receber play em 2s, consideramos que começou e mostramos overlay
+        iframe.onload = () => {
+          console.log('iframe carregado para', id);
+          playWaitTimeout = setTimeout(() => {
+            if (!playDetected) {
+              console.log('fallback onload — exibindo overlay para', id);
+              try { container.style.display = 'flex'; iframe.style.display = 'block'; } catch(e){}
+              clearIframeHandlers();
+              timeoutId = setTimeout(() => { fecharOverlay(); socket.emit('clipFinalizado'); }, (duration + 1) * 1000);
+            }
+          }, 2000);
+        };
+
+        // safety: se nada acontecer em 12s, finalizamos
+        iframeSafetyTimeout = setTimeout(() => {
+          console.warn('Nenhuma reprodução detectada no iframe — finalizando', id);
+          clearIframeHandlers();
+          fecharOverlay();
+          socket.emit('clipFinalizado');
+        }, 12000);
+
+        // adiciona muted=true para aumentar chances de autoplay ser permitido pelo navegador
+        iframe.src = `https://clips.twitch.tv/embed?clip=${id}&parent=${parent}&autoplay=true&controls=false`;
       });
 
       // Fecha sob comando
