@@ -554,9 +554,9 @@ client.connect().catch(err => {
 
 // toca som ao ban
 client.on('ban', (chanFull, user) => {
-  const chan = chanFull.replace('#','');
+  const chan = chanFull.replace('#','').toLowerCase();
   console.log(`Usuário ${user} banido em ${chan}.`);
-  io.to(chan).emit('playBanSound');
+  io.to(`overlay:${chan}`).emit('playBanSound');
 });
 
 // helpers de permissão
@@ -582,7 +582,7 @@ const MAX_HISTORY   = 100;
 // escuta chat
 client.on('message', async (channelFull, tags, message, self) => {
   if (self) return;
-  const chan = channelFull.replace('#','');
+  const chan = channelFull.replace('#','').toLowerCase();
 
   // init
   clipQueues[chan]     ??= [];
@@ -628,7 +628,7 @@ try {
     repeatCfg[chan]  = null;
     lastClip[chan]   = { id, duration: info.duration, url: info.url, video: videoUrl, thumbnail };
     isPlaying[chan]  = true;
-    io.to(chan).emit('novoClip', lastClip[chan]);
+    io.to(`overlay:${chan}`).emit('novoClip', lastClip[chan]);
     return;
   }
 
@@ -640,7 +640,7 @@ try {
     clipQueues[chan] = [];
     repeatCfg[chan]  = null;
     isPlaying[chan]  = true;
-    io.to(chan).emit('novoClip', lastClip[chan]);
+    io.to(`overlay:${chan}`).emit('novoClip', lastClip[chan]);
     return;
   }
 
@@ -683,7 +683,7 @@ if (rep) {
     repeatCfg[chan]      = null;
     isPlaying[chan]      = false;
       // lastClip[chan] = null;    ← não limpar
-    io.to(chan).emit('fecharOverlay');
+    io.to(`overlay:${chan}`).emit('fecharOverlay');
     return;
   }
 
@@ -798,7 +798,7 @@ function playNext(chan) {
     isPlaying[chan] = true;
     console.log(`▶️ [${chan}] Reproduzindo → ${clip.url} (video: ${clip.video ? 'sim' : 'não'})`);
     console.debug('▶️ clip object:', clip);
-    io.to(chan).emit('novoClip', clip);
+    io.to(`overlay:${chan}`).emit('novoClip', clip);
   }, 100);
   
   playNextDebounce.set(chan, timeoutId);
@@ -806,15 +806,23 @@ function playNext(chan) {
 
 // ————— WebSocket —————
 io.on('connection', socket => {
-  let chan = socket.handshake.query.channel?.replace('#','');
+  let chan = (socket.handshake.query.channel || '').toLowerCase().replace('#','');
   if (!chan) {
     console.warn('⚠️ Conexão WebSocket sem canal especificado');
     socket.disconnect(true);
     return;
   }
 
-  console.log(`🔌 [${chan}] Nova conexão WebSocket`);
-  socket.join(chan);
+  // segurança: só permite overlays para canais registrados
+  if (!channelConfigs[chan]) {
+    console.warn(`⚠️ Conexão WebSocket para canal não registrado: ${chan}`);
+    socket.disconnect(true);
+    return;
+  }
+
+  const room = `overlay:${chan}`;
+  console.log(`🔌 [${chan}] Nova conexão WebSocket (room: ${room})`);
+  socket.join(room);
 
   // Inicializa estruturas do canal caso ainda não existam
   clipQueues[chan]       ??= [];
