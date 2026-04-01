@@ -1075,9 +1075,11 @@ async function queueUserClip(chan, user) {
     const selectedClip = clipsToConsider[Math.floor(Math.random() * clipsToConsider.length)];
     const clipSlug = selectedClip.url.split('/').pop();
     
+    // Declarar variável antes do try para usar depois
+    let clipName = selectedClip.title;
+    
     try {
       // Buscar nome real do clip via API (apenas para salvar nos dados)
-      let clipName = selectedClip.title;
       const clipDetailsFromAPI = await twitchApi.getClipInfoBySlug(clipSlug);
       if (clipDetailsFromAPI && clipDetailsFromAPI.title) {
         clipName = clipDetailsFromAPI.title;
