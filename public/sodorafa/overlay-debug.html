@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overlay Debug - Clipe Twitch</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 20px;
+      background: #0e0e10;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #9d4edd;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .section {
+      background: #1a1a1e;
+      border: 1px solid #3a3a41;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .section h2 {
+      color: #9d4edd;
+      margin-top: 0;
+      border-bottom: 1px solid #3a3a41;
+      padding-bottom: 10px;
+    }
+
+    .debug-info {
+      background: #000;
+      border: 1px solid #3a3a41;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+      word-break: break-all;
+    }
+
+    .debug-label {
+      color: #9d4edd;
+      font-weight: bold;
+    }
+
+    .debug-value {
+      color: #00ff00;
+      margin-top: 5px;
+    }
+
+    .embed-wrapper {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      margin: 20px 0;
+      border: 2px solid #3a3a41;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .log {
+      background: #000;
+      border: 1px solid #3a3a41;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .log-line {
+      margin: 3px 0;
+      padding: 2px 0;
+    }
+
+    .log-line.success { color: #00ff00; }
+    .log-line.error { color: #ff4444; }
+    .log-line.info { color: #00aaff; }
+    .log-line.warn { color: #ffaa00; }
+
+    button {
+      background: #9d4edd;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+      font-family: monospace;
+    }
+
+    button:hover {
+      background: #b568f0;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 DEBUG - Overlay Clip Twitch</h1>
+
+    <div class="grid">
+      <!-- Test 1: Ambiente -->
+      <div class="section">
+        <h2>📊 Informações do Ambiente</h2>
+        <div class="debug-info">
+          <div class="debug-label">Hostname:</div>
+          <div class="debug-value" id="hostname"></div>
+        </div>
+        <div class="debug-info">
+          <div class="debug-label">Pathname:</div>
+          <div class="debug-value" id="pathname"></div>
+        </div>
+        <div class="debug-info">
+          <div class="debug-label">Full URL:</div>
+          <div class="debug-value" id="fullurl"></div>
+        </div>
+        <div class="debug-info">
+          <div class="debug-label">Canal Extraído:</div>
+          <div class="debug-value" id="channel"></div>
+        </div>
+      </div>
+
+      <!-- Test 2: URLs Construídas -->
+      <div class="section">
+        <h2>🎬 URLs Construídas para Teste</h2>
+        <div class="debug-info">
+          <div class="debug-label">URL SEM encodeURIComponent:</div>
+          <div class="debug-value" id="url-without"></div>
+        </div>
+        <div class="debug-info">
+          <div class="debug-label">URL COM encodeURIComponent:</div>
+          <div class="debug-value" id="url-with"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Test 1: Slug Direto SEM Encode -->
+      <div class="section">
+        <h2>❌ Teste 1: SEM encodeURIComponent</h2>
+        <button onclick="testEmbed1()">Carregar Iframe</button>
+        <div class="embed-wrapper">
+          <iframe id="embed1"></iframe>
+        </div>
+        <div class="log" id="log1"></div>
+      </div>
+
+      <!-- Test 2: Slug COM Encode -->
+      <div class="section">
+        <h2>✅ Teste 2: COM encodeURIComponent</h2>
+        <button onclick="testEmbed2()">Carregar Iframe</button>
+        <div class="embed-wrapper">
+          <iframe id="embed2"></iframe>
+        </div>
+        <div class="log" id="log2"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const testSlug = 'TenderArborealBatPeanutButterJellyTime-YzPnxkjU3PBn-zaN';
+    const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
+    const fullUrl = window.location.href;
+    const parts = pathname.split('/');
+    const channel = parts[parts.length - 1].toLowerCase();
+
+    // Display environment info
+    document.getElementById('hostname').textContent = hostname;
+    document.getElementById('pathname').textContent = pathname;
+    document.getElementById('fullurl').textContent = fullUrl;
+    document.getElementById('channel').textContent = channel;
+
+    // Build URLs
+    const urlWithout = `https://clips.twitch.tv/embed?clip=${testSlug}&parent=${hostname}&autoplay=true&muted=false`;
+    const urlWith = `https://clips.twitch.tv/embed?clip=${encodeURIComponent(testSlug)}&parent=${encodeURIComponent(hostname)}&autoplay=true&muted=false`;
+
+    document.getElementById('url-without').textContent = urlWithout;
+    document.getElementById('url-with').textContent = urlWith;
+
+    function log(logId, message, type = 'info') {
+      const logDiv = document.getElementById(logId);
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      line.textContent = `[${timestamp}] ${message}`;
+      logDiv.appendChild(line);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function testEmbed1() {
+      const iframe = document.getElementById('embed1');
+      log('log1', '📍 Construindo URL SEM encodeURIComponent...', 'info');
+      log('log1', `Slug: ${testSlug}`, 'info');
+      log('log1', `Parent: ${hostname}`, 'info');
+
+      iframe.onload = () => {
+        log('log1', '✅ Iframe carregou com sucesso!', 'success');
+      };
+
+      iframe.onerror = (err) => {
+        log('log1', `❌ Erro ao carregar: ${err}`, 'error');
+      };
+
+      log('log1', `URL: ${urlWithout}`, 'info');
+      iframe.src = urlWithout;
+      log('log1', '⏳ Aguardando carregamento...', 'warn');
+    }
+
+    function testEmbed2() {
+      const iframe = document.getElementById('embed2');
+      log('log2', '📍 Construindo URL COM encodeURIComponent...', 'info');
+      log('log2', `Slug: ${testSlug}`, 'info');
+      log('log2', `Parent: ${hostname}`, 'info');
+
+      iframe.onload = () => {
+        log('log2', '✅ Iframe carregou com sucesso!', 'success');
+      };
+
+      iframe.onerror = (err) => {
+        log('log2', `❌ Erro ao carregar: ${err}`, 'error');
+      };
+
+      log('log2', `URL: ${urlWith}`, 'info');
+      iframe.src = urlWith;
+      log('log2', '⏳ Aguardando carregamento...', 'warn');
+    }
+
+    // Monitor postMessage
+    window.addEventListener('message', (event) => {
+      console.log('📨 PostMessage:', event.data);
+      log('log1', `📨 PostMessage recebido: ${JSON.stringify(event.data)}`, 'info');
+      log('log2', `📨 PostMessage recebido: ${JSON.stringify(event.data)}`, 'info');
+    });
+
+    console.log('🔍 Debug overlay inicializado');
+    console.log('Hostname:', hostname);
+    console.log('URL SEM encode:', urlWithout);
+    console.log('URL COM encode:', urlWith);
+  </script>
+</body>
+</html>

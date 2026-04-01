@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Clipes - SODORAFA Bot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #999;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+      margin-top: 5px;
+    }
+
+    .filter-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    select, input {
+      padding: 10px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .clips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .clip-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .clip-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .clip-preview {
+      background: #000;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .clip-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .clip-preview-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .clip-card:hover .clip-preview-overlay {
+      opacity: 1;
+    }
+
+    .play-icon {
+      width: 60px;
+      height: 60px;
+      background: #667eea;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+    }
+
+    .clip-info {
+      padding: 20px;
+    }
+
+    .clip-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .clip-streamer {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .clip-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding: 10px 0;
+      border-top: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .clip-size {
+      font-weight: bold;
+    }
+
+    .clip-date {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 15px;
+    }
+
+    .clip-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-play:hover {
+      opacity: 0.9;
+    }
+
+    .btn-delete {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .btn-delete:hover {
+      background: #ffcdd2;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .empty-text {
+      color: #999;
+      margin-bottom: 20px;
+    }
+
+    .btn-download {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 6px;
+      display: inline-block;
+      font-weight: 600;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 900px;
+      width: 90%;
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-body video {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f0f0f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      color: #388e3c;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border-left: 4px solid #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎬 Gerenciador de Clipes</h1>
+      <p>Visualize e gerencie todos os clipes baixados no bot</p>
+      
+      <div class="header-info">
+        <div class="stat-card">
+          <div class="stat-label">Clipes Baixados</div>
+          <div class="stat-value" id="totalClips">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Espaço Usado</div>
+          <div class="stat-value" id="totalSize">0 MB</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Streamers</div>
+          <div class="stat-value" id="totalStreamers">0</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="filter-section">
+      <select id="streamerFilter">
+        <option value="">🔍 Filtrar por Streamer...</option>
+      </select>
+      
+      <select id="sortBy">
+        <option value="date-desc">📅 Mais Recentes Primeiro</option>
+        <option value="date-asc">Mais Antigos Primeiro</option>
+        <option value="size-desc">📊 Maior para Menor</option>
+        <option value="size-asc">Menor para Maior</option>
+        <option value="name-asc">📝 A-Z</option>
+        <option value="name-desc">Z-A</option>
+      </select>
+
+      <input type="search" id="searchInput" placeholder="🔎 Buscar clipe...">
+    </div>
+
+    <div id="successMessage" class="success-message" style="display: none;"></div>
+
+    <div id="clipsContainer" class="clips-grid">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Carregando clipes...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para exibir vídeo -->
+  <div id="videoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Clipe</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <video id="modalVideo" controls autoplay></video>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allClips = [];
+    let filteredClips = [];
+
+    // Carrega clipes ao iniciar
+    async function loadClips() {
+      try {
+        const response = await fetch('/api/clips-list');
+        const data = await response.json();
+        
+        allClips = data.clips || [];
+        
+        // Atualiza estatísticas
+        document.getElementById('totalClips').textContent = allClips.length;
+        document.getElementById('totalSize').textContent = formatBytes(data.totalSize || 0);
+        
+        const streamers = new Set(allClips.map(c => c.streamer));
+        document.getElementById('totalStreamers').textContent = streamers.size;
+        
+        // Popula filtro de streamers
+        const streamerFilter = document.getElementById('streamerFilter');
+        [...streamers].sort().forEach(streamer => {
+          const option = document.createElement('option');
+          option.value = streamer;
+          option.textContent = streamer;
+          streamerFilter.appendChild(option);
+        });
+        
+        // Renderiza clipes
+        renderClips();
+      } catch (err) {
+        console.error('Erro ao carregar clipes:', err);
+        document.getElementById('clipsContainer').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">❌</div>
+            <div class="empty-title">Erro ao Carregar</div>
+            <div class="empty-text">${err.message}</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderClips() {
+      const container = document.getElementById('clipsContainer');
+      
+      if (filteredClips.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">Nenhum Clipe Encontrado</div>
+            <div class="empty-text">Nenhum clipe baixado correspondente aos filtros</div>
+            <a href="/download-clip.html" class="btn-download">⬇️ Baixar Clipe Agora</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredClips.map(clip => `
+        <div class="clip-card">
+          <div class="clip-preview">
+            <video src="/videos/${clip.streamer}/${clip.slug}/clip.mp4" muted></video>
+            <div class="clip-preview-overlay">
+              <div class="play-icon">▶</div>
+            </div>
+          </div>
+          <div class="clip-info">
+            <div class="clip-streamer">${clip.streamer}</div>
+            <div class="clip-title" title="${clip.slug}">${clip.slug}</div>
+            <div class="clip-meta">
+              <span class="clip-size">${formatBytes(clip.size)}</span>
+              <span>${clip.duration || '?'}s</span>
+            </div>
+            <div class="clip-date">${new Date(clip.downloadedAt).toLocaleString('pt-BR')}</div>
+            <div class="clip-actions">
+              <button class="btn-play" onclick="playVideo('${clip.streamer}', '${clip.slug}', '${clip.slug}')">
+                ▶ Reproduzir
+              </button>
+              <button class="btn-delete" onclick="deleteClip('${clip.streamer}', '${clip.slug}')">
+                🗑️ Deletar
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function playVideo(streamer, slug, title) {
+      const modal = document.getElementById('videoModal');
+      const video = document.getElementById('modalVideo');
+      const titleEl = document.getElementById('modalTitle');
+      
+      video.src = `/videos/${streamer}/${slug}/clip.mp4`;
+      titleEl.textContent = title;
+      modal.classList.add('show');
+      video.play();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('videoModal');
+      const video = document.getElementById('modalVideo');
+      
+      video.pause();
+      modal.classList.remove('show');
+    }
+
+    async function deleteClip(streamer, slug) {
+      if (!confirm(`Tem certeza que deseja deletar: ${slug}?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/clips-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ streamer, slug })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao deletar clipe');
+        }
+
+        // Mostra mensagem de sucesso
+        const msg = document.getElementById('successMessage');
+        msg.textContent = '✅ Clipe deletado com sucesso!';
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+
+        // Recarrega clipes
+        loadClips();
+      } catch (err) {
+        alert('Erro ao deletar: ' + err.message);
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+    }
+
+    function filterAndSort() {
+      const streamer = document.getElementById('streamerFilter').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const sortBy = document.getElementById('sortBy').value;
+
+      // Filtra
+      filteredClips = allClips.filter(clip => {
+        if (streamer && clip.streamer !== streamer) return false;
+        if (search && !clip.slug.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      // Ordena
+      const [field, order] = sortBy.split('-');
+      
+      filteredClips.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch (field) {
+          case 'date':
+            aVal = new Date(a.downloadedAt).getTime();
+            bVal = new Date(b.downloadedAt).getTime();
+            break;
+          case 'size':
+            aVal = a.size;
+            bVal = b.size;
+            break;
+          case 'name':
+            aVal = a.slug.toLowerCase();
+            bVal = b.slug.toLowerCase();
+            break;
+        }
+
+        if (order === 'asc') {
+          return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+          return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+      });
+
+      renderClips();
+    }
+
+    // Event listeners
+    document.getElementById('streamerFilter').addEventListener('change', filterAndSort);
+    document.getElementById('sortBy').addEventListener('change', filterAndSort);
+    document.getElementById('searchInput').addEventListener('input', filterAndSort);
+
+    // Fechar modal ao clicar fora
+    document.getElementById('videoModal').addEventListener('click', (e) => {
+      if (e.target.id === 'videoModal') closeModal();
+    });
+
+    // Carrega clipes ao iniciar
+    loadClips();
+  </script>
+</body>
+</html>

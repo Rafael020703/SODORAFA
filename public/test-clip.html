@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teste de Clip Twitch</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 20px;
+      background: #0e0e10;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .test-section {
+      background: #1a1a1e;
+      border: 1px solid #3a3a41;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .test-section h2 {
+      margin-top: 0;
+      color: #9d4edd;
+    }
+
+    .embed-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      margin: 20px auto;
+      border: 2px solid #3a3a41;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0a0a0d;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .info {
+      background: #0f0f12;
+      border-left: 4px solid #9d4edd;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .info strong {
+      color: #9d4edd;
+    }
+
+    .console {
+      background: #000;
+      border: 1px solid #3a3a41;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .console-line {
+      margin: 5px 0;
+      padding: 2px 0;
+    }
+
+    .console-line.info { color: #00ff00; }
+    .console-line.warn { color: #ffaa00; }
+    .console-line.error { color: #ff4444; }
+    .console-line.success { color: #44ff44; }
+
+    .url-display {
+      background: #000;
+      border: 1px solid #3a3a41;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 4px;
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #00ff00;
+    }
+
+    button {
+      background: #9d4edd;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #b568f0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 Teste de Embed de Clip Twitch</h1>
+
+    <div class="grid">
+      <!-- Test 1: Slug Direct -->
+      <div class="test-section">
+        <h2>Teste 1: Slug Direto</h2>
+        <div class="info">
+          <strong>Método:</strong> Usar o slug diretamente no embed<br>
+          <strong>Slug:</strong> TenderArborealBatPeanutButterJellyTime-YzPnxkjU3PBn-zaN
+        </div>
+        <div class="url-display" id="url1"></div>
+        <div class="embed-wrapper">
+          <iframe id="embed1"></iframe>
+        </div>
+        <div class="console" id="console1"></div>
+      </div>
+
+      <!-- Test 2: Full URL Extract -->
+      <div class="test-section">
+        <h2>Teste 2: URL Completa da Twitch</h2>
+        <div class="info">
+          <strong>Método:</strong> Usar a URL completa do clip<br>
+          <strong>URL:</strong> https://www.twitch.tv/rafael020703/clip/TenderArborealBatPeanutButterJellyTime-YzPnxkjU3PBn-zaN
+        </div>
+        <div class="url-display" id="url2"></div>
+        <div class="embed-wrapper">
+          <iframe id="embed2"></iframe>
+        </div>
+        <div class="console" id="console2"></div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔧 Ferramentas</h2>
+      <button onclick="clearAllConsoles()">Limpar Logs</button>
+      <button onclick="testConnection()">Testar Conexão Twitch</button>
+      <button onclick="openDevTools()">Abrir DevTools (F12)</button>
+    </div>
+  </div>
+
+  <script>
+    const parentDomain = window.location.hostname;
+    
+    function log(consoleId, message, type = 'info') {
+      const console = document.getElementById(consoleId);
+      const line = document.createElement('div');
+      line.className = `console-line ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      line.textContent = `[${timestamp}] ${message}`;
+      console.appendChild(line);
+      console.scrollTop = console.scrollHeight;
+    }
+
+    function clearAllConsoles() {
+      document.getElementById('console1').innerHTML = '';
+      document.getElementById('console2').innerHTML = '';
+    }
+
+    function openDevTools() {
+      alert('Pressione F12 ou Ctrl+Shift+I para abrir o DevTools e ver os logs do console');
+    }
+
+    function testConnection() {
+      log('console1', '🔍 Testando conexão com Twitch...', 'info');
+      fetch('https://clips.twitch.tv/', { mode: 'no-cors' })
+        .then(() => {
+          log('console1', '✅ Conexão com Twitch estabelecida', 'success');
+        })
+        .catch(err => {
+          log('console1', `❌ Erro ao conectar com Twitch: ${err.message}`, 'error');
+        });
+    }
+
+    // Test 1: Slug direto
+    function setupTest1() {
+      const slug = 'TenderArborealBatPeanutButterJellyTime-YzPnxkjU3PBn-zaN';
+      const url = `https://clips.twitch.tv/embed?clip=${encodeURIComponent(slug)}&parent=${encodeURIComponent(parentDomain)}&autoplay=true&muted=false`;
+      
+      document.getElementById('url1').textContent = url;
+      log('console1', `🎯 URL construída: ${url}`, 'info');
+      log('console1', `Parent domain: ${parentDomain}`, 'info');
+      log('console1', `Slug: ${slug}`, 'info');
+
+      const iframe = document.getElementById('embed1');
+      
+      iframe.onload = () => {
+        log('console1', '✅ iframe carregado com sucesso!', 'success');
+      };
+
+      iframe.onerror = (err) => {
+        log('console1', `❌ Erro ao carregar iframe: ${err}`, 'error');
+      };
+
+      iframe.src = url;
+      log('console1', '⏳ Aguardando carregamento do iframe...', 'warn');
+    }
+
+    // Test 2: Full URL
+    function setupTest2() {
+      const clipUrl = 'https://www.twitch.tv/rafael020703/clip/TenderArborealBatPeanutButterJellyTime-YzPnxkjU3PBn-zaN';
+      const slug = clipUrl.split('/').pop();
+      const url = `https://clips.twitch.tv/embed?clip=${encodeURIComponent(slug)}&parent=${encodeURIComponent(parentDomain)}&autoplay=true&muted=false`;
+      
+      document.getElementById('url2').textContent = url;
+      log('console2', `🎯 URL original: ${clipUrl}`, 'info');
+      log('console2', `Slug extraído: ${slug}`, 'info');
+      log('console2', `URL construída: ${url}`, 'info');
+      log('console2', `Parent domain: ${parentDomain}`, 'info');
+
+      const iframe = document.getElementById('embed2');
+      
+      iframe.onload = () => {
+        log('console2', '✅ iframe carregado com sucesso!', 'success');
+      };
+
+      iframe.onerror = (err) => {
+        log('console2', `❌ Erro ao carregar iframe: ${err}`, 'error');
+      };
+
+      iframe.src = url;
+      log('console2', '⏳ Aguardando carregamento do iframe...', 'warn');
+    }
+
+    // Monitorar postMessage do iframe
+    window.addEventListener('message', (event) => {
+      const data = JSON.stringify(event.data);
+      console.log('📨 PostMessage recebido:', event.data);
+      log('console1', `📨 PostMessage: ${data}`, 'info');
+      log('console2', `📨 PostMessage: ${data}`, 'info');
+    });
+
+    // Initialize
+    window.addEventListener('load', () => {
+      log('console1', '⏸️ Inicializando Teste 1...', 'info');
+      log('console2', '⏸️ Inicializando Teste 2...', 'info');
+      setTimeout(setupTest1, 100);
+      setTimeout(setupTest2, 100);
+    });
+
+    // Log erros não capturados
+    window.onerror = (msg, url, lineNo, columnNo, error) => {
+      const errorMsg = `${msg} (${url}:${lineNo}:${columnNo})`;
+      console.error('Erro:', errorMsg);
+      log('console1', `⚠️ Erro: ${msg}`, 'error');
+    };
+  </script>
+</body>
+</html>

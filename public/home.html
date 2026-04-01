@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAFAEL020703 - Dashboard de Projetos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #111d44;
+      --bg-tertiary: #1a2963;
+      --text-primary: #f0f4ff;
+      --text-secondary: #b8c4e8;
+      --accent-blue: #4a9eff;
+      --accent-cyan: #2dd4da;
+      --accent-pink: #f472b6;
+      --accent-purple: #a78bfa;
+      --success-color: #4ade80;
+      --glass-bg: rgba(17, 29, 68, 0.6);
+      --glass-bg-light: rgba(26, 41, 99, 0.4);
+      --border-color: rgba(74, 158, 255, 0.1);
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    /* ==================== HEADER ==================== */
+    header {
+      max-width: 1400px;
+      margin: 0 auto 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      background: var(--glass-bg);
+      border: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-cyan);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      object-fit: cover;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(45, 212, 218, 0.5);
+    }
+
+    .user-avatar.hidden {
+      display: none;
+    }
+
+    .login-btn, .nav-btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      margin-left: 0.5rem;
+    }
+
+    .login-btn:hover, .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(74, 158, 255, 0.3);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    /* ==================== HERO ==================== */
+    .hero {
+      max-width: 1400px;
+      margin: 0 auto 4rem;
+      background: linear-gradient(135deg, var(--glass-bg), var(--glass-bg-light));
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 4rem;
+      text-align: center;
+    }
+
+    .hero.logged-in {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .user-avatar-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--accent-cyan);
+      object-fit: cover;
+      box-shadow: 0 10px 40px rgba(45, 212, 218, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .user-avatar-large:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 50px rgba(45, 212, 218, 0.5);
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 1rem auto 0;
+      line-height: 1.6;
+    }
+
+    /* ==================== PROJECTS GRID ==================== */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 2rem;
+      color: var(--text-primary);
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .project-card {
+      background: linear-gradient(135deg, var(--glass-bg), var(--glass-bg-light));
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 20px 40px rgba(45, 212, 218, 0.2);
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(45, 212, 218, 0.1), transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .project-card .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .project-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .project-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--accent-cyan);
+    }
+
+    .project-desc {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .project-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--accent-blue);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* ==================== STATS SECTION ==================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glass-bg-light);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 2rem;
+      color: var(--text-secondary);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    footer p {
+      margin: 0.5rem 0;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .hero {
+        padding: 2rem 1rem;
+      }
+
+      .hero h1 {
+        font-size: 1.8rem;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .user-avatar-large {
+        width: 100px;
+        height: 100px;
+      }
+
+      .nav-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .nav-btn {
+        width: 100%;
+      }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">RAFAEL020703</div>
+    <div class="user-section">
+      <img id="headerAvatar" class="user-avatar hidden" src="" alt="Avatar" onclick="goToProfile()">
+      <div class="nav-buttons">
+        <button id="loginBtn" class="login-btn" onclick="goToLogin()">🔑 Conectar Twitch</button>
+        <button id="sodorafhBtn" class="nav-btn hidden" onclick="goToSODORAFA()" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));">🎬 SODORAFA</button>
+        <button id="profileBtn" class="nav-btn hidden" onclick="goToProfile()">👤 Perfil</button>
+        <button id="logoutBtn" class="nav-btn hidden" onclick="logout()" style="background: rgba(255, 107, 122, 0.3); border: 1px solid #ff6b7a; color: #ff6b7a;">🚪 Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero" id="hero">
+    <h1>Bem-vindo ao Dashboard</h1>
+    <p>Gerenciador centralizado de projetos</p>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">📊 Estatísticas Globais</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <span class="stat-value" id="totalUsers">0</span>
+        <div class="stat-label">Usuários Cadastrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📡</div>
+        <span class="stat-value" id="totalStreamers">0</span>
+        <div class="stat-label">Streamers Monitorados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚙️</div>
+        <span class="stat-value" id="serverUptime">0h</span>
+        <div class="stat-label">Uptime do Servidor</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔴</div>
+        <span class="stat-value" id="liveCount">0</span>
+        <div class="stat-label">Lives Agora</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🎯 Meus Projetos</h2>
+    <div class="projects-grid" id="projectsGrid"></div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 RAFAEL020703. Todos os direitos reservados.</p>
+    <p>Dashboard de Controle Centralizado</p>
+  </footer>
+
+  <script>
+    const projects = [
+      {
+        id: 'sodorafa',
+        name: 'SODORAFA',
+        icon: '📡',
+        desc: 'Sistema de Overlay & Monitoramento para Twitch com integração Discord',
+        stats: { users: 25, streams: 142, status: 'Ativo' },
+        link: '/sodorafa'
+      },
+      {
+        id: 'livestwitch',
+        name: 'LIVESTWITCH',
+        icon: '🎬',
+        desc: 'Gerenciador de Lives e Transmissões em Tempo Real',
+        stats: { broadcasts: 18, viewers: '3.2K', status: 'Ativo' },
+        link: '/livestwitch'
+      }
+    ];
+
+    let currentUser = null;
+
+    async function checkAuth () {
+      try {
+        console.log('[HOME] Iniciando verificação de autenticação...');
+        const res = await fetch('/api/profile', {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        console.log('[HOME] Response status:', res.status);
+        
+        if (res.ok) {
+          const user = await res.json();
+          console.log('[HOME] Perfil carregado:', {
+            username: user.username,
+            displayName: user.displayName,
+            profileImageUrl: user.profileImageUrl,
+            avatar: user.avatar,
+            id: user.id
+          });
+          
+          currentUser = user;
+          
+          if (!currentUser.profileImageUrl && !currentUser.avatar) {
+            console.warn('[HOME] AVISO: Nenhuma URL de avatar disponível!');
+          }
+          
+          updateUI();
+        } else {
+          console.warn('[HOME] Resposta não ok:', res.status, res.statusText);
+        }
+      } catch (err) {
+        console.error('[HOME] Erro na verificação de autenticação:', err);
+        console.error('[HOME] Stack:', err.stack);
+      }
+    }
+
+    async function loadStats() {
+      try {
+        console.log('[HOME] Carregando estatísticas...');
+        const res = await fetch('/api/stats');
+        
+        if (!res.ok) {
+          console.warn('[HOME] Erro ao carregar stats, status:', res.status);
+          return;
+        }
+        
+        const stats = await res.json();
+        console.log('[HOME] Estatísticas carregadas:', stats);
+
+        document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+        document.getElementById('totalStreamers').textContent = stats.totalStreamers || 0;
+        document.getElementById('liveCount').textContent = stats.liveCount || 0;
+        
+        const hours = Math.floor(stats.uptimeSeconds / 3600);
+        document.getElementById('serverUptime').textContent = `${hours}h`;
+      } catch (err) {
+        console.error('[HOME] Erro ao carregar estatísticas:', err);
+        console.error('[HOME] Stack:', err.stack);
+      }
+    }
+
+    function updateUI() {
+      if (currentUser) {
+        console.log('[HOME] Atualizando interface para usuário logado');
+        document.getElementById('loginBtn').classList.add('hidden');
+        document.getElementById('sodorafhBtn').classList.remove('hidden');
+        document.getElementById('profileBtn').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('headerAvatar').classList.remove('hidden');
+        
+        const avatarUrl = currentUser.profileImageUrl || currentUser.avatar || '/img/default-avatar.png';
+        console.log('[HOME] Avatar URL selecionada:', avatarUrl);
+        
+        const headerImg = document.getElementById('headerAvatar');
+        headerImg.src = avatarUrl;
+        headerImg.onerror = () => {
+          console.error('[HOME] Erro ao carregar avatar:', avatarUrl);
+          headerImg.src = '/img/default-avatar.png';
+        };
+        headerImg.onload = () => {
+          console.log('[HOME] Avatar carregado com sucesso:', avatarUrl);
+        };
+
+        const hero = document.getElementById('hero');
+        hero.classList.add('logged-in');
+        const userName = currentUser.displayName || currentUser.display_name || currentUser.username || 'Usuário';
+        console.log('[HOME] Nome do usuário:', userName);
+        
+        hero.innerHTML = `
+          <img class="user-avatar-large" src="${avatarUrl}" alt="Avatar" onclick="goToProfile()" onerror="this.src='/img/default-avatar.png'">
+          <div>
+            <h1>Olá, ${userName}!</h1>
+            <p>Bem-vindo ao seu dashboard de controle</p>
+          </div>
+        `;
+      } else {
+        console.log('[HOME] Nenhum usuário logado, mostrando tela inicial');
+        document.getElementById('loginBtn').classList.remove('hidden');
+        document.getElementById('sodorafhBtn').classList.add('hidden');
+        document.getElementById('profileBtn').classList.add('hidden');
+        document.getElementById('logoutBtn').classList.add('hidden');
+        document.getElementById('headerAvatar').classList.add('hidden');
+
+        const hero = document.getElementById('hero');
+        hero.classList.remove('logged-in');
+        hero.innerHTML = `
+          <h1>Bem-vindo ao Dashboard</h1>
+          <p>Gerenciador centralizado de projetos • <a href="#" onclick="goToLogin(); return false" style="color: var(--accent-cyan); text-decoration: none; font-weight: 600;">Conectar com Twitch</a></p>
+        `;
+      }
+
+      renderProjects();
+    }
+
+    function renderProjects() {
+      const grid = document.getElementById('projectsGrid');
+      grid.innerHTML = projects.map(proj => {
+        const statKeys = Object.keys(proj.stats).filter(k => k !== 'status');
+        return `
+        <div class="project-card" onclick="window.location.href='${proj.link}'">
+          <div class="content">
+            <div class="project-icon">${proj.icon}</div>
+            <div class="project-name">${proj.name}</div>
+            <div class="project-desc">${proj.desc}</div>
+            <div class="project-stats">
+              <div class="stat-item">
+                <span class="stat-value">${Object.values(proj.stats)[0]}</span>
+                <span class="stat-label">${statKeys[0]}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">${Object.values(proj.stats)[1]}</span>
+                <span class="stat-label">${statKeys[1]}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">${proj.stats.status}</span>
+                <span class="stat-label">Status</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    function goToLogin() {
+      window.location.href = '/auth/twitch';
+    }
+
+    function goToProfile() {
+      window.location.href = '/profile';
+    }
+
+    function goToSODORAFA() {
+      window.location.href = '/sodorafa';
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadStats();
+      setInterval(loadStats, 30000);
+    });
+  </script>
+</body>
+</html>

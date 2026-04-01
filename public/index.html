@@ -1,660 +1,1036 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TwitchClips — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SODORAFA - Dashboard de Controle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
+    * { box-sizing: border-box; }
     :root {
-      --bg-0: #0f1720;
-      --bg-1: #16181b;
-      --card: rgb(0, 0, 0);
-      --accent: linear-gradient(90deg, #00ff99, #00e6e6);
-      --muted: #9aa4a3;
-      --glass: rgba(255, 255, 255, 0.03);
-      --border: rgba(0, 255, 153, 0.12);
-      --success: #16a34a;
-      font-family: 'Inter', Roboto, Arial, sans-serif;
+      --bg-primary: #0a0e27;
+      --bg-secondary: #111d44;
+      --bg-tertiary: #1a2a5f;
+      --border-color: #2d4a8a;
+      --text-primary: #f0f4ff;
+      --text-secondary: #b8c4e8;
+      --text-tertiary: #8a98c8;
+      --accent-blue: #4a9eff;
+      --accent-cyan: #2dd4da;
+      --accent-purple: #a78bfa;
+      --accent-pink: #f472b6;
+      --danger-color: #ff6b7a;
+      --success-color: #4ade80;
+      --radius-md: 12px;
+      --radius-lg: 16px;
     }
-
-    * {
-      box-sizing: border-box
-    }
-
-    html,
+    
     body {
-      height: 100%;
       margin: 0;
-      background: linear-gradient(135deg, #0b0d10 0%, #141617 100%);
-      color: #eafaf1
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, #0f1a35 50%, #0a0e27 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 28px auto;
-      padding: 20px
+    
+    .container {
+      width: min(1280px, 95vw);
+      margin: 0 auto;
+      padding: 20px;
     }
-
-    header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      justify-content: space-between;
-      margin-bottom: 18px
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-      color: #00ffab;
-      letter-spacing: 1px
-    }
-
-    header .subtitle {
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .grid {
+    
+    /* Header & Navigation */
+    .header {
       display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 18px;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 28px;
+      background: rgba(17, 29, 68, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(45, 74, 138, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
     }
-
-    /* Left column: main card */
-    .card {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.6);
-    }
-
-    /* controls list */
-    .controls {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .control-card {
+    
+    .brand {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      transition: all .15s;
     }
-
-    .control-left {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0
-    }
-
-    .control-left label {
-      font-weight: 600;
-      color: #e8fff5;
-      font-size: 14px
-    }
-
-    .control-left small {
-      color: var(--muted);
-      font-size: 12px
-    }
-
-    .control-right {
+    
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
-      gap: 10px
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 20px;
     }
-
-    select {
-      background: transparent;
-      color: #eafaf1;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      padding: 8px 10px;
-      border-radius: 10px;
-      font-size: 13px;
-      min-width: 120px;
+    
+    .brand-info h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
     }
-
-    select:focus {
-      border-color: var(--accent);
-      outline: none;
-      box-shadow: 0 0 10px rgba(0, 255, 153, 0.6);
-      /* Destaque no foco */
+    
+    .brand-info p {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
     }
-
-    select option {
-      background: #16181b;
-      /* Para os itens de seleção */
-      color: #eafaf1;
-      padding: 8px;
+    
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-
-    select:hover {
-      background-color: rgba(0, 255, 153, 0.1);
-      /* Efeito hover */
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-blue);
+      object-fit: cover;
     }
-
-    select:disabled {
-      opacity: 0.45
+    
+    .user-info span {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
     }
-
-    /* switch */
-    .switch {
+    
+    .user-info small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    
+    /* Glass Card */
+    .glass-card {
+      background: rgba(17, 29, 68, 0.4);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(45, 74, 138, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      transition: all 0.3s ease;
+    }
+    
+    .glass-card:hover {
+      background: rgba(17, 29, 68, 0.6);
+      border-color: rgba(74, 158, 255, 0.3);
+    }
+    
+    .glass-card h2 {
+      margin: 0 0 12px 0;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .glass-card h2::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: linear-gradient(180deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 2px;
+    }
+    
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    
+    /* Commands Section */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .cmd-item {
+      background: rgba(10, 19, 49, 0.8);
+      border: 1px solid rgba(45, 74, 138, 0.5);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .cmd-item:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 16px rgba(74, 158, 255, 0.2);
+    }
+    
+    .cmd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .cmd-name {
+      display: block;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+    
+    .cmd-desc {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    
+    .toggle-switch {
       position: relative;
+      width: 44px;
+      height: 24px;
       display: inline-block;
-      width: 46px;
-      height: 26px
     }
-
-    .switch input {
+    
+    .toggle-switch input {
       opacity: 0;
       width: 0;
-      height: 0
+      height: 0;
     }
-
-    .slider {
+    
+    .toggle-slider {
       position: absolute;
-      cursor: pointer;
       inset: 0;
-      background: #283033;
-      border-radius: 26px;
-      transition: all .18s;
-      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35)
+      background: rgba(138, 152, 200, 0.3);
+      border-radius: 999px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(138, 152, 200, 0.5);
     }
-
-    .slider:before {
-      content: "";
+    
+    .toggle-slider::before {
+      content: '';
       position: absolute;
-      height: 20px;
+      left: 2px;
+      top: 2px;
       width: 20px;
-      left: 3px;
-      top: 3px;
-      background: #fff;
+      height: 20px;
+      background: white;
       border-radius: 50%;
-      transition: all .18s;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5)
+      transition: all 0.3s ease;
     }
-
-    .switch input:checked+.slider {
-      background: var(--accent)
+    
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-color: var(--accent-blue);
     }
-
-    .switch input:checked+.slider:before {
-      transform: translateX(20px)
+    
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
     }
-
-    /* disabled visual */
-    .control-card.disabled {
-      opacity: 0.62
+    
+    .cmd-roles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
     }
-
-    /* right column: info & actions */
-    .side {
+    
+    .role-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(74, 158, 255, 0.15);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--accent-blue);
+    }
+    
+    .role-badge input {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .stat-card {
+      background: rgba(10, 19, 49, 0.8);
+      border: 1px solid rgba(45, 74, 138, 0.5);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    
+    .stat-value {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+      box-shadow: 0 4px 16px rgba(74, 158, 255, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(74, 158, 255, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(45, 74, 138, 0.4);
+      color: var(--text-primary);
+      border: 1px solid rgba(45, 74, 138, 0.6);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(45, 74, 138, 0.6);
+      border-color: var(--accent-blue);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Links Section */
+    .links-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .link-card {
+      background: rgba(10, 19, 49, 0.8);
+      border: 1px solid rgba(45, 74, 138, 0.5);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
       display: flex;
       flex-direction: column;
-      gap: 12px
-    }
-
-    .panel {
-      padding: 14px;
-      border-radius: 10px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
-      border: 1px solid rgba(255, 255, 255, 0.02)
-    }
-    .panel h2 {
-      color: #ff0000
-    }
-    .panel h3 {
-      margin: 0;
-      font-size: 14px;
-      color: #bfffd6
-    }
-
-    .panel p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .actions {
-      display: flex;
       gap: 8px;
-      margin-top: 10px
+      transition: all 0.3s ease;
     }
-
-    .btn {
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600
+    
+    .link-card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 16px rgba(74, 158, 255, 0.2);
     }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #05201d;
-      box-shadow: 0 6px 18px rgba(0, 255, 153, 0.08)
+    
+    .link-label {
+      font-size: 0.9rem;
+      font-weight: 600;
     }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      color: #eafaf1
+    
+    .link-url {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
     }
-
-    /* notification modal */
+    
+    /* Notification Modal */
     #notifyModal {
       position: fixed;
       right: 20px;
       bottom: 20px;
+      background: rgba(17, 29, 68, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: var(--radius-md);
       padding: 14px 18px;
-      border-radius: 12px;
-      background: linear-gradient(90deg, #001f0e, #05302b);
-      color: #d6fff0;
-      border: 1px solid rgba(0, 255, 153, 0.08);
-      box-shadow: 0 8px 34px rgba(0, 0, 0, 0.6);
       z-index: 9999;
-      display: none
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      animation: slideUp 0.3s ease;
     }
-
-    #notifyModal.success {
-      border-color: rgba(22, 163, 74, 0.15)
+    
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-
-    /* footer */
-    footer {
-      margin-top: 18px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
     }
-
-    /* responsive */
-    @media(max-width:980px) {
-      .grid {
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: linear-gradient(135deg, rgba(17, 29, 68, 0.95), rgba(26, 42, 95, 0.95));
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 90%;
+      max-width: 420px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      color: var(--text-primary);
+    }
+    
+    .modal-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(10, 19, 49, 0.8);
+      border: 1px solid rgba(45, 74, 138, 0.5);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(74, 158, 255, 0.2);
+    }
+    
+    .modal-input::placeholder {
+      color: var(--text-tertiary);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .main-grid {
         grid-template-columns: 1fr;
       }
-
-      .side {
-        order: 2
+      
+      .header {
+        grid-template-columns: 1fr;
+      }
+      
+      .cmd-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 12px;
+      }
+      
+      .header {
+        padding: 12px;
+      }
+      
+      .cmd-grid, .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stat-value {
+        font-size: 1.4rem;
       }
     }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>TwitchClips</h1>
-        <div class="subtitle">Dashboard — Configure comandos do bot</div>
-      </div>
-      <div>
-        <a href="/logout" class="btn btn-ghost">Logout</a>
-      </div>
-    </header>
-
-    <div class="grid">
-      <div class="card">
-        <h2 style="margin:0 0 12px;color:#bfffd6">Configurações de Comandos</h2>
-        <div class="controls" id="controlsList">
-          <!-- control cards serão preenchidos pelo HTML estático abaixo -->
-          <form id="config-form">
-            <div class="control-card" data-cmd="watch">
-              <div class="control-left">
-                <label>!watch</label>
-                <small>Reproduz um clipe específico</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !watch">
-                  <input type="checkbox" id="watchEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="watch">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control-card" data-cmd="stop">
-              <div class="control-left">
-                <label>!stop</label>
-                <small>Para a reprodução e fecha overlay</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !stop">
-                  <input type="checkbox" id="stopEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="stop">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control-card" data-cmd="replay">
-              <div class="control-left">
-                <label>!replay</label>
-                <small>Reproduz o último clipe</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !replay">
-                  <input type="checkbox" id="replayEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="replay">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control-card" data-cmd="repeat">
-              <div class="control-left">
-                <label>!repeat</label>
-                <small>Ativa modo contínuo para um usuário</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !repeat">
-                  <input type="checkbox" id="repeatEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="repeat">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control-card" data-cmd="so">
-              <div class="control-left">
-                <label>!so</label>
-                <small>Shoutout aleatório</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !so">
-                  <input type="checkbox" id="soEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="so">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
-            <!--
-            <div class="control-card" data-cmd="clip">
-              <div class="control-left">
-                <label>!clip</label>
-                <small>Cria um clipe e envia no chat</small>
-              </div>
-              <div class="control-right">
-                <label class="switch" title="Habilitar !clip">
-                  <input type="checkbox" id="clipEnabled">
-                  <span class="slider"></span>
-                </label>
-                <select id="clip">
-                  <option value="broadcaster">Broadcaster</option>
-                  <option value="moderator">Moderador</option>
-                  <option value="vip">VIP</option>
-                  <option value="subscriber">Sub</option>
-                  <option value="viewer">Todos</option>
-                </select>
-              </div>
-            </div>
--->
-
-            <div style="display:flex;justify-content:center;margin-top:14px">
-              <button type="submit" class="btn btn-primary" id="saveBtn">Salvar Configurações</button>
-            </div>
-          </form>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="brand-logo">S</div>
+        <div class="brand-info">
+          <h1>SODORAFA</h1>
+          <p>Painel de Controle | Overlay & Comandos</p>
         </div>
       </div>
-
-      <aside class="side">
-        <div class="panel card">
-          <h3>Informações</h3>
-          <p id="usernameInfo">Carregando...</p>
-          <div class="actions">
-            <button class="btn btn-ghost" id="overlayLinkBtn">Obter link do overlay</button>
-            <button class="btn btn-ghost" id="addChannelBtn">Adicionar canal</button>
-          </div>
+      <div class="user-section">
+        <div>
+          <img id="avatarImg" class="user-avatar" src="" alt="Avatar" style="display:none;" />
         </div>
-
-        <div class="panel card">
-          <h3>Ajuda rápida</h3>
-          <p>Use os switches para ativar/desativar comandos. O select define quem pode usar o comando.</p>
+        <div class="user-info">
+          <span id="usernameInfo">Carregando...</span>
+          <small>Conectado via Twitch</small>
         </div>
-        <div class="panel card">
-          <center>
-            <h2>DONATE!</h2>
-            <p>Se você deseja apoiar o projeto, por favor, doe via Live Pix!</p>
-            <a href="https://livepix.gg/rafael020703" target="_blank">
-
-              <img src="livepix_qrcode.png" alt="QR Code Live Pix"
-                style="width:100%; max-width:250px; margin-top:20px;">
-
-            </a>
-            <p><a href="https://livepix.gg/rafael020703" target="_blank" style="color:#00ff00;">Clique aqui para doar
-                via Live Pix</a></p>
-          </center>
-        </div>
-      </aside>
+        <a href="/home" class="btn btn-secondary">🏠 Home</a>
+        <a href="/monitoring" class="btn btn-secondary">📺 Monitorar</a>
+        <a href="/profile" class="btn btn-secondary">👤 Perfil</a>
+        <a href="/logout" class="btn btn-secondary">🚪 Sair</a>
+      </div>
     </div>
 
-    <footer>
-      Feito para gerenciamento rápido dos comandos do bot.
-    </footer>
+    <!-- Main Content -->
+    <div class="main-grid">
+      <!-- Commands Section -->
+      <section class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h2>Configurar Comandos</h2>
+            <p style="margin: 6px 0 0 0; color: var(--text-secondary); font-size: 0.85rem;">Ative/desative comandos e defina permissões por role.</p>
+          </div>
+          <button id="saveBtn" class="btn btn-primary">
+            <span>✓</span> Salvar
+          </button>
+        </div>
+        <form id="config-form" class="cmd-grid">
+          <!-- Commands will be generated here -->
+        </form>
+      </section>
+
+      <!-- Right Column Stats & Actions -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Metrics -->
+        <section class="glass-card">
+          <h2>Métricas em Tempo Real</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Total Reproduzido</span>
+              <span class="stat-value" id="totalClips">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Fila de Espera</span>
+              <span class="stat-value" id="qLen">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Tocando Agora</span>
+              <span id="playing" style="display: block; font-size: 1.4rem; font-weight: 700; color: var(--success-color); margin-top: 6px;">—</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Repeat Ativo</span>
+              <span id="repeatUser" style="display: block; font-size: 1.1rem; font-weight: 600; color: var(--accent-pink); margin-top: 6px;">—</span>
+            </div>
+          </div>
+          <button id="reloadMetrics" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 12px;">
+            <span>🔄</span> Atualizar Métricas
+          </button>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="glass-card">
+          <h2>Ações Rápidas</h2>
+          <div class="action-buttons">
+            <button id="overlayLinkBtn" class="btn btn-primary">Link Overlay</button>
+            <button id="addChannelBtn" class="btn btn-secondary">Novo Canal</button>
+          </div>
+          <div class="links-section">
+            <a id="overlayLink" class="link-card" href="#" target="_blank" style="text-decoration: none;">
+              <span class="link-label">Meu Overlay</span>
+              <span class="link-url" id="overlayUrl">—</span>
+            </a>
+            <a href="/autoclipes/teste" class="link-card" target="_blank" style="text-decoration: none;">
+              <span class="link-label">Auto Clipes</span>
+              <span class="link-url">Demo automático</span>
+            </a>
+            <a href="/admin" class="link-card" style="text-decoration: none;">
+              <span class="link-label">Painel Admin</span>
+              <span class="link-url">Gerenciar canais</span>
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notifyModal" style="display:none;"></div>
+
+    <!-- Copy Link Modal -->
+    <div id="overlayLinkModal" class="modal">
+      <div class="modal-content">
+        <h3 class="modal-title">Link do Overlay</h3>
+        <input id="overlayLinkInput" class="modal-input" readonly />
+        <div class="action-buttons" style="justify-content: flex-end; margin-top: 0;">
+          <button id="copyOverlayBtn" class="btn btn-primary">
+            <span>📋</span> Copiar Link
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('overlayLinkModal').classList.remove('active')">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Channel Modal -->
+    <div id="addChannelModal" class="modal">
+      <div class="modal-content">
+        <h3 class="modal-title">Adicionar Novo Canal</h3>
+        <input id="newChannelInput" class="modal-input" placeholder="Nome do canal (ex: seu_canal)" />
+        <div class="action-buttons" style="justify-content: flex-end; margin-top: 0;">
+          <button id="confirmAddChannelBtn" class="btn btn-primary">
+            <span>✓</span> Adicionar
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('addChannelModal').classList.remove('active')">Cancelar</button>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Notification modal -->
-  <div id="notifyModal" role="status" aria-live="polite"></div>
-
-<!-- Overlay link modal (reaproveitado) -->
-<div id="overlayLinkModal"
-  style="display:none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9998; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid rgba(2, 0, 0, 0.400); min-width: 400px; max-width: 600px; height: auto;">
-  <div style="margin-bottom: 12px; font-weight: 600; color: #bfffd6; font-size: 18px;">Link do Overlay</div>
-  <input id="overlayLinkInput" readonly
-    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.753); background: transparent; color: #eafaf1; font-size: 16px;" />
-  <div style="margin-top: 15px; text-align: right;">
-    <button class="btn btn-primary" id="copyOverlayBtn" style="padding: 10px 20px; font-size: 16px;">Copiar</button>
-  </div>
-</div>
-
 
   <script>
-    // Utility: show notification modal for 5s
-    let notifyTimeout;
-    function showNotification(message, type = 'info', duration = 5000) {
-      const el = document.getElementById('notifyModal');
-      el.textContent = message;
-      el.className = ''; // reset
-      if (type === 'success') el.classList.add('success');
-      el.style.display = 'block';
-      clearTimeout(notifyTimeout);
-      notifyTimeout = setTimeout(() => el.style.display = 'none', duration);
-    }
-
-    // enable/disable select based on toggle, and add disabled class to card
-    function bindToggle(cmd) {
-      const cb = document.getElementById(cmd + 'Enabled');
-      const sel = document.getElementById(cmd);
-      const card = document.querySelector(`.control-card[data-cmd="${cmd}"]`);
-      if (!cb || !sel || !card) return;
-      function apply() {
-        sel.disabled = !cb.checked;
-        if (!cb.checked) card.classList.add('disabled'); else card.classList.remove('disabled');
-      }
-      cb.addEventListener('change', apply);
-      apply();
-    }
-
-    // Gather cmds
+    // ========================================
+    // CONSTANTS & STATE
+    // ========================================
     const CMDS = ['watch', 'stop', 'replay', 'repeat', 'so', 'clip'];
+    const CMD_INFO = {
+      watch:  { desc: 'Reproduzir clipe', icon: '▶️' },
+      stop:   { desc: 'Parar reprodução', icon: '⏹️' },
+      replay: { desc: 'Repetir último', icon: '🔁' },
+      repeat: { desc: 'Modo repeat', icon: '↻' },
+      so:     { desc: 'Shoutout clipe', icon: '📢' },
+      clip:   { desc: 'Criar clipe', icon: '✂️' }
+    };
+    const ROLE_OPTIONS = ['broadcaster', 'moderator', 'vip', 'subscriber', 'viewer'];
+    const ROLE_EMOJIS = {
+      broadcaster: '👑',
+      moderator: '⚔️',
+      vip: '💎',
+      subscriber: '⭐',
+      viewer: '👥'
+    };
 
-    // On load: fetch config
-    document.addEventListener('DOMContentLoaded', async () => {
-      CMDS.forEach(bindToggle);
+    // Estado da aplicação
+    const AppState = {
+      currentUser: null,
+      config: {},
+      metrics: {},
+      lastUpdate: 0,
+      updateInterval: 5000,
+      cacheExpiry: 60000, // 1 minuto
+      isOnline: navigator.onLine
+    };
 
+    // ========================================
+    // UTILITIES
+    // ========================================
+
+    function showNotification(msg, duration = 3200, type = 'info') {
+      const modal = document.getElementById('notifyModal');
+      const colors = {
+        success: '#4ade80',
+        error: '#ff6b7a',
+        info: '#4a9eff'
+      };
+      modal.textContent = msg;
+      modal.style.color = colors[type] || colors.info;
+      modal.style.display = 'block';
+      clearTimeout(showNotification._t);
+      showNotification._t = setTimeout(() => {
+        modal.style.display = 'none';
+      }, duration);
+    }
+
+    // Validação de input
+    function validateInput(input, pattern = /^[a-zA-Z0-9_-]+$/) {
+      if (!input || input.length === 0) return false;
+      if (!pattern.test(input)) return false;
+      return true;
+    }
+
+    // Debounce para funções
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Throttle para funções
+    function throttle(func, limit) {
+      let inThrottle;
+      return function(...args) {
+        if (!inThrottle) {
+          func.apply(this, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      };
+    }
+
+    // Check conexão com servidor
+    async function checkServerHealth() {
       try {
-        const response = await fetch('/get-config', { method: 'GET', credentials: 'include' });
-        if (response.status === 401) {
-          // not authenticated — redirect to auth flow
+        const res = await fetch('/metrics', { signal: AbortSignal.timeout(3000) });
+        return res.ok;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    // ========================================
+    // RENDER FUNCTIONS
+    // ========================================
+
+    function renderCommandGrid() {
+      const form = document.getElementById('config-form');
+      form.innerHTML = '';
+      CMDS.forEach(cmd => {
+        const div = document.createElement('div');
+        div.className = 'cmd-item';
+        div.innerHTML = `
+          <div class="cmd-header">
+            <div>
+              <span class="cmd-name">${CMD_INFO[cmd].icon} !${cmd}</span>
+              <span class="cmd-desc">${CMD_INFO[cmd].desc}</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="${cmd}Enabled" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="${cmd}Roles" class="cmd-roles"></div>
+        `;
+        form.appendChild(div);
+
+        const toggle = document.getElementById(`${cmd}Enabled`);
+        toggle.addEventListener('change', () => updateRolesVisibility(cmd));
+      });
+      renderRoleChips();
+    }
+
+    function renderRoleChips() {
+      CMDS.forEach(cmd => {
+        const root = document.getElementById(`${cmd}Roles`);
+        if (!root) return;
+        root.innerHTML = '';
+        ROLE_OPTIONS.forEach(role => {
+          const label = document.createElement('label');
+          label.className = 'role-badge';
+          label.innerHTML = `
+            <input type="checkbox" class="role-item" id="${cmd}-${role}" value="${role}" />
+            <span>${ROLE_EMOJIS[role]} ${role}</span>
+          `;
+          root.appendChild(label);
+        });
+      });
+    }
+
+    function updateRolesVisibility(cmd) {
+      const toggle = document.getElementById(`${cmd}Enabled`);
+      const rolesContainer = document.getElementById(`${cmd}Roles`);
+      if (rolesContainer) {
+        rolesContainer.style.opacity = toggle.checked ? '1' : '0.5';
+        rolesContainer.style.pointerEvents = toggle.checked ? 'auto' : 'none';
+      }
+    }
+
+    // ========================================
+    // API CALLS
+    // ========================================
+
+    async function fetchConfig() {
+      try {
+        const r = await fetch('/get-config', { 
+          credentials: 'include',
+          signal: AbortSignal.timeout(5000)
+        });
+        if (r.status === 401) {
           window.location.href = '/auth/twitch';
           return;
         }
-        if (!response.ok) throw new Error('Erro ao obter configurações');
-        const config = await response.json();
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
 
-        // username
-        document.getElementById('usernameInfo').textContent = config.username || '—';
-        // fill each cmd: enabled + roles[0]
-        CMDS.forEach(cmd => {
-          const cb = document.getElementById(cmd + 'Enabled');
-          const sel = document.getElementById(cmd);
-          const card = document.querySelector(`.control-card[data-cmd="${cmd}"]`);
-          const saved = config.allowedCommands?.[cmd];
-          if (saved) {
-            if (typeof saved.enabled === 'boolean' && cb) cb.checked = saved.enabled;
-            if (Array.isArray(saved.roles) && sel) sel.value = saved.roles[0] || sel.value;
-          } else {
-            if (cb) cb.checked = false;
-          }
-          // apply visuals (enable/disable select)
-          if (cb && sel) sel.disabled = !cb.checked;
-          if (card) {
-            if (cb && !cb.checked) card.classList.add('disabled'); else card.classList.remove('disabled');
-          }
-        });
+        const cfg = await r.json();
+        AppState.currentUser = cfg;
+        AppState.config = cfg.allowedCommands || {};
 
-        // ensure the overlay button shows correct link when clicked
-        document.getElementById('overlayLinkBtn').addEventListener('click', () => {
-          const baseUrl = window.location.origin;
-          const channel = (config.username || 'seuCanal').toLowerCase();
-          const overlayLink = `${baseUrl}/overlay/${channel}`;
-          document.getElementById('overlayLinkInput').value = overlayLink;
-          document.getElementById('overlayLinkModal').style.display = 'block';
-        });
-
-        // copy overlay
-        document.getElementById('copyOverlayBtn').addEventListener('click', async () => {
-          const input = document.getElementById('overlayLinkInput');
-          input.select();
-          try {
-            await navigator.clipboard.writeText(input.value);
-            showNotification('Link copiado para a área de transferência', 'success', 5000);
-          } catch {
-            // fallback
-            input.setSelectionRange(0, input.value.length);
-            document.execCommand('copy');
-            showNotification('Link copiado', 'success', 5000);
-          }
-          // auto-close modal after copy
-          setTimeout(() => document.getElementById('overlayLinkModal').style.display = 'none', 600);
-        });
-
-      } catch (err) {
-        console.error('Erro ao carregar config', err);
-        showNotification('Erro ao carregar configurações. Faça login se necessário.', 'info', 6000);
-      }
-
-      // hide overlay modal when clicking outside
-      window.addEventListener('click', (e) => {
-        const modal = document.getElementById('overlayLinkModal');
-        if (modal.style.display === 'block' && !modal.contains(e.target) && e.target.id !== 'overlayLinkBtn') {
-          modal.style.display = 'none';
+        document.getElementById('usernameInfo').textContent = cfg.username || '—';
+        
+        const avatar = document.getElementById('avatarImg');
+        if (cfg.avatar) {
+          avatar.src = cfg.avatar;
+          avatar.style.display = 'inline-block';
         }
-      });
-    });
 
-    // Save handler
-    document.getElementById('config-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
+        // Update overlay link
+        const overlayUrl = `${window.location.origin}/overlay/${cfg.username.toLowerCase()}`;
+        document.getElementById('overlayUrl').textContent = overlayUrl;
+        document.getElementById('overlayLink').href = overlayUrl;
+
+        // Load commands config
+        CMDS.forEach(cmd => {
+          const toggle = document.getElementById(`${cmd}Enabled`);
+          const saved = cfg.allowedCommands?.[cmd];
+          if (toggle) toggle.checked = !!saved?.enabled;
+
+          const root = document.getElementById(`${cmd}Roles`);
+          if (root) {
+            const inputs = root.querySelectorAll('input.role-item');
+            inputs.forEach(i => {
+              i.checked = Array.isArray(saved?.roles) && saved.roles.includes(i.value);
+            });
+          }
+
+          updateRolesVisibility(cmd);
+        });
+
+        showNotification('✓ Configuração carregada', 2000, 'success');
+      } catch (err) {
+        console.error('Config fetch error:', err);
+        showNotification('✗ Erro ao carregar configuração', 3000, 'error');
+        
+        // Retry com backoff
+        setTimeout(fetchConfig, 5000);
+      }
+    }
+
+    async function saveConfig() {
       const allowedCommands = {};
       CMDS.forEach(cmd => {
-        const cb = document.getElementById(cmd + 'Enabled');
-        const sel = document.getElementById(cmd);
+        const toggle = document.getElementById(`${cmd}Enabled`);
+        const root = document.getElementById(`${cmd}Roles`);
+        const roles = [];
+        
+        if (root) {
+          for (const input of root.querySelectorAll('input.role-item:checked')) {
+            roles.push(input.value);
+          }
+        }
+
         allowedCommands[cmd] = {
-          enabled: !!(cb && cb.checked),
-          roles: [(sel && sel.value) || 'broadcaster']
+          enabled: !!toggle?.checked,
+          roles: roles.length ? roles : ['broadcaster']
         };
       });
 
-      // disable save btn while saving
-      const saveBtn = document.getElementById('saveBtn');
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Salvando...';
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvando...';
 
       try {
-        const res = await fetch('/save-config', {
+        const r = await fetch('/save-config', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ allowedCommands })
-        });
-        const json = await res.json();
-        if (json.success) {
-          showNotification('Configurações salvas com sucesso!', 'success', 5000);
-        } else {
-          showNotification('Erro ao salvar configurações', 'info', 5000);
-        }
-      } catch (err) {
-        console.error('Erro ao salvar config', err);
-        showNotification('Erro ao salvar (verifique console)', 'info', 5000);
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Salvar Configurações';
-      }
-    });
-
-    // quick action: add-channel (reenvia /add-channel para garantir monitoramento)
-    document.getElementById('addChannelBtn').addEventListener('click', async () => {
-      try {
-        // pega username atual mostrado
-        const username = document.getElementById('usernameInfo').textContent || '';
-        if (!username || username === '—') { showNotification('Usuário não carregado', 'info'); return; }
-        const chan = username.toLowerCase();
-        const r = await fetch('/add-channel', {
-          method: 'POST', credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channel: chan })
+          body: JSON.stringify({ allowedCommands }),
+          signal: AbortSignal.timeout(10000)
         });
         const j = await r.json();
-        if (j.success) showNotification('Canal adicionado/monitorado', 'success');
-        else showNotification('Erro ao adicionar canal', 'info');
+        if (j.success) {
+          AppState.config = allowedCommands;
+          showNotification('✓ Configurações salvas com sucesso!', 2000, 'success');
+        } else {
+          showNotification('✗ Falha ao salvar configurações', 3000, 'error');
+        }
       } catch (err) {
-        console.error(err);
-        showNotification('Erro ao adicionar canal', 'info');
+        console.error('Config save error:', err);
+        showNotification('✗ Erro ao salvar', 3000, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Salvar';
       }
+    }
+
+    async function updateMetrics() {
+      // Verificar cache
+      const now = Date.now();
+      if (now - AppState.lastUpdate < AppState.cacheExpiry) {
+        return;
+      }
+
+      try {
+        const r = await fetch('/metrics', { 
+          credentials: 'include',
+          signal: AbortSignal.timeout(3000)
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+        const d = await r.json();
+        AppState.metrics = d;
+        AppState.lastUpdate = now;
+
+        document.getElementById('qLen').textContent = d.queueLength ?? '0';
+        document.getElementById('totalClips').textContent = d.totalClipsPlayed ?? '0';
+        document.getElementById('playing').textContent = d.isPlaying ? '✓ Sim' : '✗ Não';
+        document.getElementById('repeatUser').textContent = d.repeatUser || '—';
+      } catch (err) {
+        console.error('Metrics fetch error:', err);
+        // Não mostrar erro em atualizações automáticas
+        if (err.name !== 'AbortError') {
+          console.warn('⚠️ Erro ao atualizar métricas');
+        }
+      }
+    }
+
+    // ========================================
+    // MODAL HANDLERS
+    // ========================================
+
+    function setupOverlayLink() {
+      document.getElementById('overlayLinkBtn').addEventListener('click', () => {
+        document.getElementById('overlayLinkInput').value = document.getElementById('overlayLink').href;
+        document.getElementById('overlayLinkModal').classList.add('active');
+      });
+
+      document.getElementById('copyOverlayBtn').addEventListener('click', async () => {
+        const input = document.getElementById('overlayLinkInput');
+        try {
+          await navigator.clipboard.writeText(input.value);
+          showNotification('✓ Link copiado para a área de transferência!', 2000, 'success');
+          setTimeout(() => {
+            document.getElementById('overlayLinkModal').classList.remove('active');
+          }, 500);
+        } catch {
+          showNotification('✗ Erro ao copiar link', 3000, 'error');
+        }
+      });
+    }
+
+    function setupAddChannel() {
+      document.getElementById('addChannelBtn').addEventListener('click', () => {
+        document.getElementById('addChannelModal').classList.add('active');
+        document.getElementById('newChannelInput').value = '';
+      });
+
+      document.getElementById('confirmAddChannelBtn').addEventListener('click', async () => {
+        const channel = document.getElementById('newChannelInput').value.trim().toLowerCase();
+        if (!validateInput(channel)) {
+          showNotification('✗ Digite um nome de canal válido', 2000, 'error');
+          return;
+        }
+
+        try {
+          const r = await fetch('/add-channel', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channel }),
+            signal: AbortSignal.timeout(10000)
+          });
+          const j = await r.json();
+          if (j.success) {
+            showNotification('✓ Canal adicionado com sucesso!', 2000, 'success');
+            document.getElementById('addChannelModal').classList.remove('active');
+          } else {
+            showNotification(`✗ ${j.error || 'Falha ao adicionar canal'}`, 3000, 'error');
+          }
+        } catch (err) {
+          console.error('Add channel error:', err);
+          showNotification('✗ Erro ao adicionar canal', 3000, 'error');
+        }
+      });
+    }
+
+    // ========================================
+    // INITIALIZATION & EVENT LISTENERS
+    // ========================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCommandGrid();
+      fetchConfig();
+      updateMetrics();
+
+      document.getElementById('saveBtn').addEventListener('click', saveConfig);
+      document.getElementById('reloadMetrics').addEventListener('click', updateMetrics);
+
+      setupOverlayLink();
+      setupAddChannel();
+
+      // Auto-reload metrics every 5 seconds
+      const metricsInterval = setInterval(updateMetrics, AppState.updateInterval);
+
+      // Close modals on outside click
+      window.addEventListener('click', (e) => {
+        if (e.target.id === 'overlayLinkModal') {
+          document.getElementById('overlayLinkModal').classList.remove('active');
+        }
+        if (e.target.id === 'addChannelModal') {
+          document.getElementById('addChannelModal').classList.remove('active');
+        }
+      });
+
+      // Monitor conexão com servidor
+      window.addEventListener('online', () => {
+        AppState.isOnline = true;
+        showNotification('✓ Conectado ao servidor', 2000, 'success');
+        fetchConfig();
+      });
+
+      window.addEventListener('offline', () => {
+        AppState.isOnline = false;
+        showNotification('✗ Desconectado do servidor', 3000, 'error');
+      });
+
+      // Cleanup ao sair da página
+      window.addEventListener('beforeunload', () => {
+        clearInterval(metricsInterval);
+      });
     });
   </script>
 </body>
-
 </html>

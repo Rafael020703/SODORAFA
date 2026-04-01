@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SODORAFA - Dashboard de Controle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #111d44;
+      --bg-tertiary: #1a2963;
+      --text-primary: #f0f4ff;
+      --text-secondary: #b8c4e8;
+      --text-tertiary: #8a98c8;
+      --accent-blue: #4a9eff;
+      --accent-cyan: #2dd4da;
+      --accent-purple: #a78bfa;
+      --accent-pink: #f472b6;
+      --accent-green: #4ade80;
+      --danger-color: #ff6b7a;
+      --glass-bg: rgba(17, 29, 68, 0.6);
+      --glass-bg-light: rgba(26, 41, 99, 0.4);
+      --border-color: rgba(74, 158, 255, 0.1);
+      --border-color-strong: #2d4a8a;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 3rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-info h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .brand-info p {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-blue);
+      object-fit: cover;
+    }
+
+    .user-info span {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .user-info small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(74, 158, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* GLASS CARD */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      margin-bottom: 2rem;
+    }
+
+    .glass-card:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(17, 29, 68, 0.75);
+    }
+
+    .glass-card h2 {
+      margin: 0 0 1rem 0;
+      font-size: 1.3rem;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .glass-card p {
+      margin: 0 0 1rem 0;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* MAIN GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    /* COMMANDS SECTION */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 1rem;
+    }
+
+    .cmd-item {
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .cmd-item:hover {
+      border-color: var(--accent-blue);
+      background: rgba(26, 41, 99, 0.6);
+      box-shadow: 0 0 16px rgba(74, 158, 255, 0.2);
+    }
+
+    .cmd-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .cmd-name {
+      display: block;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+
+    .cmd-desc {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      display: inline-block;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(138, 152, 200, 0.3);
+      border-radius: 999px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(138, 152, 200, 0.5);
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-color: var(--accent-blue);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    .cmd-roles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .role-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: rgba(74, 158, 255, 0.15);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--accent-blue);
+    }
+
+    .role-badge input {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 1rem;
+    }
+
+    .stat-card {
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(26, 41, 99, 0.6);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ACTION BUTTONS */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      color: white;
+      box-shadow: 0 4px 16px rgba(74, 158, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(74, 158, 255, 0.4);
+    }
+
+    /* LINKS SECTION */
+    .links-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 1rem;
+    }
+
+    .link-card {
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      border-radius: 12px;
+      padding: 1rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .link-card:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(74, 158, 255, 0.2);
+    }
+
+    .link-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .link-url {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      word-break: break-all;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* NOTIFICATION */
+    #notifyModal {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: rgba(17, 29, 68, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+      border-radius: 8px;
+      padding: 14px 18px;
+      z-index: 9999;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, var(--glass-bg), var(--glass-bg-light));
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 420px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+      color: var(--text-primary);
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--glass-bg-light);
+      border: 1px solid rgba(74, 158, 255, 0.2);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 12px rgba(74, 158, 255, 0.2);
+    }
+
+    .modal-input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .cmd-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      .container {
+        padding: 0;
+      }
+
+      header {
+        padding: 1rem;
+      }
+
+      .glass-card {
+        padding: 1rem;
+      }
+
+      .cmd-grid, .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header-right {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .stat-value {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="brand-logo">🎨 SODORAFA</div>
+        <div class="brand-info">
+          <h1>Dashboard de Controle</h1>
+          <p>Overlays & Comandos</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-section">
+          <img id="avatarImg" class="user-avatar" src="" alt="Avatar" style="display:none;" />
+          <div class="user-info">
+            <span id="usernameInfo">Carregando...</span>
+            <small>Conectado via Twitch</small>
+          </div>
+        </div>
+        <a href="/home" class="btn btn-secondary">🏠 Home</a>
+        <a href="/livestwitch" class="btn btn-secondary">📡 Monitorar</a>
+        <a href="/profile" class="btn btn-secondary">👤 Perfil</a>
+        <a href="/logout" class="btn btn-secondary">🚪 Sair</a>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-grid">
+      <!-- COMMANDS SECTION -->
+      <section class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2>Configurar Comandos</h2>
+            <p>Ative/desative comandos e defina permissões por role.</p>
+          </div>
+          <button id="saveBtn" class="btn btn-primary">✓ Salvar</button>
+        </div>
+        <form id="config-form" class="cmd-grid">
+          <!-- Commands will be generated here -->
+        </form>
+      </section>
+
+      <!-- RIGHT COLUMN: STATS & ACTIONS -->
+      <div style="display: flex; flex-direction: column; gap: 2rem;">
+        <!-- METRICS -->
+        <section class="glass-card">
+          <h2>Métricas em Tempo Real</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Total Reproduzido</span>
+              <span class="stat-value" id="totalClips">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Fila de Espera</span>
+              <span class="stat-value" id="qLen">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Tocando Agora</span>
+              <span id="playing" style="display: block; font-size: 1.4rem; font-weight: 700; color: var(--accent-green); margin-top: 6px;">—</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Repeat Ativo</span>
+              <span id="repeatUser" style="display: block; font-size: 1.1rem; font-weight: 600; color: var(--accent-pink); margin-top: 6px;">—</span>
+            </div>
+          </div>
+          <button id="reloadMetrics" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 1rem;">🔄 Atualizar Métricas</button>
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <section class="glass-card">
+          <h2>Ações Rápidas</h2>
+          <div class="action-buttons">
+            <button id="overlayLinkBtn" class="btn btn-primary">Link Overlay</button>
+            <button id="addChannelBtn" class="btn btn-secondary">Novo Canal</button>
+          </div>
+          <div class="links-section">
+            <a id="overlayLink" class="link-card" href="#" target="_blank" style="text-decoration: none;">
+              <span class="link-label">Meu Overlay</span>
+              <span class="link-url" id="overlayUrl">—</span>
+            </a>
+            <a href="/sodorafa/autoclipes" class="link-card" target="_blank" style="text-decoration: none;">
+              <span class="link-label">Auto Clipes</span>
+              <span class="link-url">Gerenciar clipes</span>
+            </a>
+            <a href="/admin" class="link-card" style="text-decoration: none;">
+              <span class="link-label">Painel Admin</span>
+              <span class="link-url">Gerenciar canais</span>
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div id="notifyModal" style="display:none;"></div>
+
+    <!-- OVERLAY LINK MODAL -->
+    <div id="overlayLinkModal" class="modal">
+      <div class="modal-content">
+        <h3 class="modal-title">Link do Overlay</h3>
+        <input id="overlayLinkInput" class="modal-input" readonly />
+        <div class="action-buttons" style="justify-content: flex-end;">
+          <button id="copyOverlayBtn" class="btn btn-primary">📋 Copiar Link</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('overlayLinkModal').classList.remove('active')">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD CHANNEL MODAL -->
+    <div id="addChannelModal" class="modal">
+      <div class="modal-content">
+        <h3 class="modal-title">Adicionar Novo Canal</h3>
+        <input id="newChannelInput" class="modal-input" placeholder="Nome do canal (ex: seu_canal)" />
+        <div class="action-buttons" style="justify-content: flex-end;">
+          <button id="confirmAddChannelBtn" class="btn btn-primary">✓ Adicionar</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('addChannelModal').classList.remove('active')">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================
+    // CONSTANTS & STATE
+    // ========================================
+    const CMDS = ['watch', 'stop', 'replay', 'repeat', 'so', 'clip'];
+    const CMD_INFO = {
+      watch:  { desc: 'Reproduzir clipe', icon: '▶️' },
+      stop:   { desc: 'Parar reprodução', icon: '⏹️' },
+      replay: { desc: 'Repetir último', icon: '🔁' },
+      repeat: { desc: 'Modo repeat', icon: '↻' },
+      so:     { desc: 'Shoutout clipe', icon: '📢' },
+      clip:   { desc: 'Criar clipe', icon: '✂️' }
+    };
+    const ROLE_OPTIONS = ['broadcaster', 'moderator', 'vip', 'subscriber', 'viewer'];
+    const ROLE_EMOJIS = {
+      broadcaster: '👑',
+      moderator: '⚔️',
+      vip: '💎',
+      subscriber: '⭐',
+      viewer: '👥'
+    };
+
+    // APP STATE
+    const AppState = {
+      currentUser: null,
+      config: {},
+      metrics: {},
+      lastUpdate: 0,
+      updateInterval: 5000,
+      cacheExpiry: 60000,
+      isOnline: navigator.onLine
+    };
+
+    // ========================================
+    // UTILITIES
+    // ========================================
+    function showNotification(msg, duration = 3200, type = 'info') {
+      const modal = document.getElementById('notifyModal');
+      const colors = {
+        success: '#4ade80',
+        error: '#ff6b7a',
+        info: '#4a9eff'
+      };
+      modal.textContent = msg;
+      modal.style.color = colors[type] || colors.info;
+      modal.style.display = 'block';
+      clearTimeout(showNotification._t);
+      showNotification._t = setTimeout(() => {
+        modal.style.display = 'none';
+      }, duration);
+    }
+
+    function validateInput(input, pattern = /^[a-zA-Z0-9_-]+$/) {
+      if (!input || input.length === 0) return false;
+      if (!pattern.test(input)) return false;
+      return true;
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function throttle(func, limit) {
+      let inThrottle;
+      return function(...args) {
+        if (!inThrottle) {
+          func.apply(this, args);
+          inThrottle = true;
+          setTimeout(() => inThrottle = false, limit);
+        }
+      };
+    }
+
+    async function checkServerHealth() {
+      try {
+        const res = await fetch('/metrics', { signal: AbortSignal.timeout(3000) });
+        return res.ok;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    // ========================================
+    // RENDER FUNCTIONS
+    // ========================================
+    function renderCommandGrid() {
+      const form = document.getElementById('config-form');
+      form.innerHTML = '';
+      CMDS.forEach(cmd => {
+        const div = document.createElement('div');
+        div.className = 'cmd-item';
+        div.innerHTML = `
+          <div class="cmd-header">
+            <div>
+              <span class="cmd-name">${CMD_INFO[cmd].icon} !${cmd}</span>
+              <span class="cmd-desc">${CMD_INFO[cmd].desc}</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="${cmd}Enabled" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div id="${cmd}Roles" class="cmd-roles"></div>
+        `;
+        form.appendChild(div);
+        const toggle = document.getElementById(`${cmd}Enabled`);
+        toggle.addEventListener('change', () => updateRolesVisibility(cmd));
+      });
+      renderRoleChips();
+    }
+
+    function renderRoleChips() {
+      CMDS.forEach(cmd => {
+        const root = document.getElementById(`${cmd}Roles`);
+        if (!root) return;
+        root.innerHTML = '';
+        ROLE_OPTIONS.forEach(role => {
+          const label = document.createElement('label');
+          label.className = 'role-badge';
+          label.innerHTML = `
+            <input type="checkbox" class="role-item" id="${cmd}-${role}" value="${role}" />
+            <span>${ROLE_EMOJIS[role]} ${role}</span>
+          `;
+          root.appendChild(label);
+        });
+      });
+    }
+
+    function updateRolesVisibility(cmd) {
+      const toggle = document.getElementById(`${cmd}Enabled`);
+      const rolesContainer = document.getElementById(`${cmd}Roles`);
+      if (rolesContainer) {
+        rolesContainer.style.opacity = toggle.checked ? '1' : '0.5';
+        rolesContainer.style.pointerEvents = toggle.checked ? 'auto' : 'none';
+      }
+    }
+
+    // ========================================
+    // API CALLS
+    // ========================================
+    async function fetchConfig() {
+      try {
+        const r = await fetch('/get-config', { 
+          credentials: 'include',
+          signal: AbortSignal.timeout(5000)
+        });
+        if (r.status === 401) {
+          window.location.href = '/auth/twitch';
+          return;
+        }
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+        const cfg = await r.json();
+        AppState.currentUser = cfg;
+        AppState.config = cfg.allowedCommands || {};
+
+        document.getElementById('usernameInfo').textContent = cfg.username || '—';
+        
+        const avatar = document.getElementById('avatarImg');
+        if (cfg.avatar) {
+          avatar.src = cfg.avatar;
+          avatar.style.display = 'inline-block';
+        }
+
+        const overlayUrl = `${window.location.origin}/overlay/${cfg.username.toLowerCase()}`;
+        document.getElementById('overlayUrl').textContent = overlayUrl;
+        document.getElementById('overlayLink').href = overlayUrl;
+
+        CMDS.forEach(cmd => {
+          const toggle = document.getElementById(`${cmd}Enabled`);
+          const saved = cfg.allowedCommands?.[cmd];
+          if (toggle) toggle.checked = !!saved?.enabled;
+
+          const root = document.getElementById(`${cmd}Roles`);
+          if (root) {
+            const inputs = root.querySelectorAll('input.role-item');
+            inputs.forEach(i => {
+              i.checked = Array.isArray(saved?.roles) && saved.roles.includes(i.value);
+            });
+          }
+
+          updateRolesVisibility(cmd);
+        });
+
+        showNotification('✓ Configuração carregada', 2000, 'success');
+      } catch (err) {
+        console.error('Config fetch error:', err);
+        showNotification('✗ Erro ao carregar configuração', 3000, 'error');
+        setTimeout(fetchConfig, 5000);
+      }
+    }
+
+    async function saveConfig() {
+      const allowedCommands = {};
+      CMDS.forEach(cmd => {
+        const toggle = document.getElementById(`${cmd}Enabled`);
+        const root = document.getElementById(`${cmd}Roles`);
+        const roles = [];
+        
+        if (root) {
+          for (const input of root.querySelectorAll('input.role-item:checked')) {
+            roles.push(input.value);
+          }
+        }
+
+        allowedCommands[cmd] = {
+          enabled: !!toggle?.checked,
+          roles: roles.length ? roles : ['broadcaster']
+        };
+      });
+
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Salvando...';
+
+      try {
+        const r = await fetch('/save-config', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ allowedCommands }),
+          signal: AbortSignal.timeout(10000)
+        });
+        const j = await r.json();
+        if (j.success) {
+          AppState.config = allowedCommands;
+          showNotification('✓ Configurações salvas!', 2000, 'success');
+        } else {
+          showNotification('✗ Falha ao salvar', 3000, 'error');
+        }
+      } catch (err) {
+        console.error('Config save error:', err);
+        showNotification('✗ Erro ao salvar', 3000, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Salvar';
+      }
+    }
+
+    async function updateMetrics() {
+      const now = Date.now();
+      if (now - AppState.lastUpdate < AppState.cacheExpiry) {
+        return;
+      }
+
+      try {
+        const r = await fetch('/metrics', { 
+          credentials: 'include',
+          signal: AbortSignal.timeout(3000)
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+        const d = await r.json();
+        AppState.metrics = d;
+        AppState.lastUpdate = now;
+
+        document.getElementById('qLen').textContent = d.queueLength ?? '0';
+        document.getElementById('totalClips').textContent = d.totalClipsPlayed ?? '0';
+        document.getElementById('playing').textContent = d.isPlaying ? '✓ Sim' : '✗ Não';
+        document.getElementById('repeatUser').textContent = d.repeatUser || '—';
+      } catch (err) {
+        console.error('Metrics fetch error:', err);
+      }
+    }
+
+    // ========================================
+    // MODAL HANDLERS
+    // ========================================
+    function setupOverlayLink() {
+      document.getElementById('overlayLinkBtn').addEventListener('click', () => {
+        document.getElementById('overlayLinkInput').value = document.getElementById('overlayLink').href;
+        document.getElementById('overlayLinkModal').classList.add('active');
+      });
+
+      document.getElementById('copyOverlayBtn').addEventListener('click', async () => {
+        const input = document.getElementById('overlayLinkInput');
+        try {
+          await navigator.clipboard.writeText(input.value);
+          showNotification('✓ Link copiado!', 2000, 'success');
+          setTimeout(() => {
+            document.getElementById('overlayLinkModal').classList.remove('active');
+          }, 500);
+        } catch {
+          showNotification('✗ Erro ao copiar', 3000, 'error');
+        }
+      });
+    }
+
+    function setupAddChannel() {
+      document.getElementById('addChannelBtn').addEventListener('click', () => {
+        document.getElementById('addChannelModal').classList.add('active');
+        document.getElementById('newChannelInput').value = '';
+      });
+
+      document.getElementById('confirmAddChannelBtn').addEventListener('click', async () => {
+        const channel = document.getElementById('newChannelInput').value.trim().toLowerCase();
+        if (!validateInput(channel)) {
+          showNotification('✗ Digite um nome válido', 2000, 'error');
+          return;
+        }
+
+        try {
+          const r = await fetch('/add-channel', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channel }),
+            signal: AbortSignal.timeout(10000)
+          });
+          const j = await r.json();
+          if (j.success) {
+            showNotification('✓ Canal adicionado!', 2000, 'success');
+            document.getElementById('addChannelModal').classList.remove('active');
+          } else {
+            showNotification(`✗ ${j.error || 'Falha'}`, 3000, 'error');
+          }
+        } catch (err) {
+          console.error('Add channel error:', err);
+          showNotification('✗ Erro ao adicionar', 3000, 'error');
+        }
+      });
+    }
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCommandGrid();
+      fetchConfig();
+      updateMetrics();
+
+      document.getElementById('saveBtn').addEventListener('click', saveConfig);
+      document.getElementById('reloadMetrics').addEventListener('click', updateMetrics);
+
+      setupOverlayLink();
+      setupAddChannel();
+
+      const metricsInterval = setInterval(updateMetrics, AppState.updateInterval);
+
+      window.addEventListener('click', (e) => {
+        if (e.target.id === 'overlayLinkModal') {
+          document.getElementById('overlayLinkModal').classList.remove('active');
+        }
+        if (e.target.id === 'addChannelModal') {
+          document.getElementById('addChannelModal').classList.remove('active');
+        }
+      });
+
+      window.addEventListener('online', () => {
+        AppState.isOnline = true;
+        showNotification('✓ Conectado', 2000, 'success');
+        fetchConfig();
+      });
+
+      window.addEventListener('offline', () => {
+        AppState.isOnline = false;
+        showNotification('✗ Desconectado', 3000, 'error');
+      });
+
+      window.addEventListener('beforeunload', () => {
+        clearInterval(metricsInterval);
+      });
+
+      // Verificar autenticação
+      fetch('/api/profile', { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) {
+            window.location.href = '/auth/twitch';
+          }
+        })
+        .catch(() => {
+          window.location.href = '/auth/twitch';
+        });
+    });
+  </script>
+</body>
+</html>

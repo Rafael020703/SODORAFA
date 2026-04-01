@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baixar Clipe - SODORAFA Bot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="url"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      font-family: 'Courier New', monospace;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"].clip-url {
+      flex: 1;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .download-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status.show {
+      display: flex;
+    }
+
+    .status.loading {
+      background: #e3f2fd;
+      color: #1976d2;
+      border-left: 4px solid #1976d2;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      color: #388e3c;
+      border-left: 4px solid #388e3c;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+      border-left: 4px solid #c62828;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-text {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .close-status {
+      background: none;
+      border: none;
+      color: currentColor;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 0;
+      width: auto;
+      margin: 0;
+    }
+
+    .info-box {
+      background: #f5f5f5;
+      border-left: 4px solid #667eea;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      color: #333;
+    }
+
+    .streamer-section {
+      background: #faf9f9;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .streamer-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .streamer-option:hover {
+      background: #f0f0f0;
+    }
+
+    .streamer-option input[type="radio"] {
+      cursor: pointer;
+    }
+
+    .streamer-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress-bar.show {
+      display: block;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📥 Baixar Clipe</h1>
+    <p class="subtitle">Cole o link do clipe da Twitch para baixar o vídeo</p>
+
+    <div class="info-box">
+      <strong>ℹ️ Exemplo:</strong><br>
+      https://www.twitch.tv/rafael020703/clip/RockyPeacefulNostril...
+    </div>
+
+    <form id="downloadForm">
+      <div class="form-group">
+        <label for="clipUrl">Link do Clip ou Vídeo MP4:</label>
+        <input
+          type="url"
+          id="clipUrl"
+          class="clip-url"
+          placeholder="Colar URL do clip ou link direto do MP4"
+          required
+        >
+      </div>
+
+      <div class="info-box" style="margin-bottom: 20px;">
+        <strong>💡 Exemplos aceitos:</strong><br>
+        ✅ https://www.twitch.tv/rafael020703/clip/CLIP_NAME<br>
+        ✅ https://clips.twitch.tv/CLIP_NAME<br>
+        ✅ https://production.assets.clips.twitchcdn.net/.../video-720.mp4?...
+      </div>
+
+      <div class="form-group">
+        <label>Streamer (Pasta de armazenamento):</label>
+        <div class="streamer-section" id="streamerList">
+          <div class="streamer-option">
+            <input type="radio" id="streamer-auto" name="streamer" value="auto" checked>
+            <label for="streamer-auto" class="streamer-name">🔍 Auto-detectar (recomendado)</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="download-btn">⬇️ Baixar Clipe</button>
+    </form>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <div class="status" id="status">
+      <div class="spinner" id="spinner"></div>
+      <div class="status-text" id="statusText"></div>
+      <button class="close-status" id="closeStatus">✕</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('downloadForm');
+    const clipUrlInput = document.getElementById('clipUrl');
+    const statusEl = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const spinner = document.getElementById('spinner');
+    const closeStatusBtn = document.getElementById('closeStatus');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+
+    // Parse clip info from URL
+    function parseClipUrl(url) {
+      // Se é um link direto de MP4, retorna como está
+      if (url.includes('.mp4')) {
+        const slug = url.split('/').pop().split('?')[0].replace('.mp4', '');
+        return {
+          isDirectVideo: true,
+          videoUrl: url,
+          slug: slug || 'clip'
+        };
+      }
+
+      // Suporta: https://twitch.tv/USERNAME/clip/SLUG
+      // Ou: https://www.twitch.tv/USERNAME/clip/SLUG
+      // Ou: https://clips.twitch.tv/SLUG
+      let match = url.match(/twitch\.tv\/([^\/]+)\/clip\/([^\/?]+)/i);
+      if (match) {
+        return {
+          streamer: match[1],
+          slug: match[2]
+        };
+      }
+
+      // Tenta apenas clips.twitch.tv/SLUG
+      match = url.match(/clips\.twitch\.tv\/([^\/?]+)/i);
+      if (match) {
+        return {
+          slug: match[1]
+        };
+      }
+
+      return null;
+    }
+
+    // Show status message
+    function showStatus(message, type = 'loading') {
+      statusEl.className = `status show ${type}`;
+      statusText.textContent = message;
+      
+      if (type !== 'loading') {
+        spinner.style.display = 'none';
+        progressBar.classList.remove('show');
+      } else {
+        spinner.style.display = 'block';
+        progressBar.classList.add('show');
+        progressFill.style.width = '0%';
+      }
+    }
+
+    function updateProgress(percent) {
+      progressFill.style.width = percent + '%';
+    }
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const url = clipUrlInput.value.trim();
+      if (!url) {
+        showStatus('❌ Digite uma URL válida', 'error');
+        return;
+      }
+
+      const clipInfo = parseClipUrl(url);
+      if (!clipInfo) {
+        showStatus('❌ URL inválida. Use: twitch.tv/USERNAME/clip/NAME, clips.twitch.tv/NAME, ou URL direta do MP4', 'error');
+        return;
+      }
+
+      const streamerSelect = document.querySelector('input[name="streamer"]:checked').value;
+      const streamer = clipInfo.streamer || streamerSelect === 'auto' ? clipInfo.slug : streamerSelect;
+
+      form.querySelector('button').disabled = true;
+
+      try {
+        // Se é um vídeo direto, pula a extração
+        if (clipInfo.isDirectVideo) {
+          showStatus(`⬇️ Baixando vídeo direto...`, 'loading');
+          updateProgress(10);
+
+          const downloadRes = await fetch('/api/download-clip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              video_url: clipInfo.videoUrl,
+              clip_slug: clipInfo.slug,
+              streamer_name: streamer
+            })
+          });
+
+          updateProgress(80);
+
+          if (!downloadRes.ok) {
+            const error = await downloadRes.json();
+            throw new Error(error.error || 'Erro ao baixar o vídeo');
+          }
+
+          updateProgress(100);
+          const result = await downloadRes.json();
+
+          showStatus(`✅ Clipe baixado com sucesso!\n📁 ${result.file_path}`, 'success');
+          clipUrlInput.value = '';
+          return;
+        }
+
+        showStatus(`📦 Processando clipe: ${clipInfo.slug}...`, 'loading');
+
+        // Extrai a URL de download
+        const extractRes = await fetch('/api/extract-clip-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clip_slug: clipInfo.slug,
+            streamer_name: streamer
+          })
+        });
+
+        if (!extractRes.ok) {
+          const error = await extractRes.json();
+          throw new Error(error.error || 'Erro ao extrair URL do clipe');
+        }
+
+        const extractData = await extractRes.json();
+        showStatus(`⬇️ Baixando vídeo: ${clipInfo.slug}.mp4...`, 'loading');
+        updateProgress(10);
+
+        // Faz o download
+        const downloadRes = await fetch('/api/download-clip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_url: extractData.video_url,
+            clip_slug: clipInfo.slug,
+            streamer_name: streamer
+          })
+        });
+
+        updateProgress(50);
+
+        if (!downloadRes.ok) {
+          const error = await downloadRes.json();
+          throw new Error(error.error || 'Erro ao baixar o vídeo');
+        }
+
+        updateProgress(100);
+        const result = await downloadRes.json();
+
+        showStatus(`✅ Clipe baixado com sucesso!\n📁 ${result.file_path}`, 'success');
+        clipUrlInput.value = '';
+        
+      } catch (error) {
+        console.error('Erro:', error);
+        showStatus(`❌ Erro: ${error.message}`, 'error');
+      } finally {
+        form.querySelector('button').disabled = false;
+      }
+    });
+
+    closeStatusBtn.addEventListener('click', () => {
+      statusEl.classList.remove('show');
+    });
+
+    // Fetch available streamers
+    async function loadStreamers() {
+      try {
+        const res = await fetch('/api/get-streamers');
+        const data = await res.json();
+        
+        if (data.streamers && data.streamers.length > 0) {
+          const streamerList = document.getElementById('streamerList');
+          
+          data.streamers.forEach(streamer => {
+            const option = document.createElement('div');
+            option.className = 'streamer-option';
+            option.innerHTML = `
+              <input type="radio" id="streamer-${streamer}" name="streamer" value="${streamer}">
+              <label for="streamer-${streamer}" class="streamer-name">${streamer}</label>
+            `;
+            streamerList.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao carregar streamers:', err);
+      }
+    }
+
+    loadStreamers();
+  </script>
+</body>
+</html>

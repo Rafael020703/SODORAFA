@@ -1,16 +1,16 @@
 {
-  "rafael020703": {
+  "morrisonjhunior": {
     "allowedCommands": {
       "watch": {
         "enabled": true,
         "roles": [
-          "vip"
+          "viewer"
         ]
       },
       "replay": {
         "enabled": true,
         "roles": [
-          "vip"
+          "viewer"
         ]
       },
       "repeat": {
@@ -22,7 +22,7 @@
       "so": {
         "enabled": true,
         "roles": [
-          "vip"
+          "viewer"
         ]
       },
       "stop": {
@@ -37,41 +37,9 @@
           "viewer"
         ]
       }
-    }
-  },
-  "morrisonjhunior": {
-    "allowedCommands": {
-      "watch": {
-        "enabled": true,
-        "roles": [
-          "viewer"
-        ]
-      },
-      "stop": {
-        "enabled": true,
-        "roles": [
-          "viewer"
-        ]
-      },
-      "replay": {
-        "enabled": true,
-        "roles": [
-          "viewer"
-        ]
-      },
-      "so": {
-        "enabled": true,
-        "roles": [
-          "viewer"
-        ]
-      },
-      "clip": {
-        "enabled": false,
-        "roles": [
-          "viewer"
-        ]
-      }
-    }
+    },
+    "userId": "526422616",
+    "login": "morrisonjhunior"
   },
   "lobbydaamanda": {
     "allowedCommands": {
@@ -112,7 +80,8 @@
         ]
       }
     },
-    "userAccessToken": "hv61a509gc7o4w4dzrdaf8skaa4ytp"
+    "userId": "400710210",
+    "login": "lobbydaamanda"
   },
   "mistart_": {
     "allowedCommands": {
@@ -152,7 +121,9 @@
           "moderator"
         ]
       }
-    }
+    },
+    "userId": "796186403",
+    "login": "mistart_"
   },
   "mihaw01": {
     "allowedCommands": {
@@ -193,17 +164,12 @@
         ]
       }
     },
-    "userAccessToken": "iocnkbyqleqj3891eikprzfoy4onlt"
+    "userId": "69285816",
+    "login": "mihaw01"
   },
   "rafaeltestes": {
     "allowedCommands": {
       "watch": {
-        "enabled": true,
-        "roles": [
-          "vip"
-        ]
-      },
-      "stop": {
         "enabled": true,
         "roles": [
           "vip"
@@ -215,7 +181,19 @@
           "vip"
         ]
       },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
       "so": {
+        "enabled": true,
+        "roles": [
+          "vip"
+        ]
+      },
+      "stop": {
         "enabled": true,
         "roles": [
           "vip"
@@ -228,8 +206,8 @@
         ]
       }
     },
-    "userAccessToken": "t7bp66v9ciqfl109lia64osjfht82p",
-    "username": "rafaeltestes"
+    "userId": "1062323396",
+    "login": "rafaeltestes"
   },
   "marlagondand": {
     "allowedCommands": {
@@ -270,7 +248,8 @@
         ]
       }
     },
-    "userAccessToken": "gsfn94ca9l66pd7vm6ybiuu9fc8axx"
+    "userId": "449850536",
+    "login": "marlagondand"
   },
   "gokuxssj_game_play": {
     "allowedCommands": {
@@ -310,7 +289,9 @@
           "broadcaster"
         ]
       }
-    }
+    },
+    "userId": "445481695",
+    "login": "gokuxssj_game_play"
   },
   "alllanstreams": {
     "allowedCommands": {
@@ -350,7 +331,9 @@
           "moderator"
         ]
       }
-    }
+    },
+    "userId": "121757643",
+    "login": "alllanstreams"
   },
   "little_geh": {
     "allowedCommands": {
@@ -390,7 +373,9 @@
           "viewer"
         ]
       }
-    }
+    },
+    "userId": "547490957",
+    "login": "little_geh"
   },
   "devolvemeucanal": {
     "allowedCommands": {
@@ -400,19 +385,25 @@
           "moderator"
         ]
       },
-      "stop": {
-        "enabled": true,
-        "roles": [
-          "moderator"
-        ]
-      },
       "replay": {
         "enabled": true,
         "roles": [
           "moderator"
         ]
       },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
       "so": {
+        "enabled": true,
+        "roles": [
+          "moderator"
+        ]
+      },
+      "stop": {
         "enabled": true,
         "roles": [
           "moderator"
@@ -424,7 +415,9 @@
           "moderator"
         ]
       }
-    }
+    },
+    "userId": "1010822214",
+    "login": "devolvemeucanal"
   },
   "kairosveg": {
     "allowedCommands": {
@@ -434,19 +427,25 @@
           "moderator"
         ]
       },
-      "stop": {
-        "enabled": true,
-        "roles": [
-          "moderator"
-        ]
-      },
       "replay": {
         "enabled": true,
         "roles": [
           "moderator"
         ]
       },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
       "so": {
+        "enabled": true,
+        "roles": [
+          "moderator"
+        ]
+      },
+      "stop": {
         "enabled": true,
         "roles": [
           "moderator"
@@ -458,6 +457,176 @@
           "moderator"
         ]
       }
-    }
+    },
+    "userId": "514663415",
+    "login": "kairosveg"
+  },
+  "teste": {
+    "allowedCommands": {
+      "watch": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "replay": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "so": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "stop": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "clip": {
+        "enabled": false,
+        "roles": [
+          "moderator"
+        ]
+      }
+    },
+    "userId": "399586",
+    "login": "teste"
+  },
+  "rafael020703": {
+    "allowedCommands": {
+      "watch": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "replay": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "repeat": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "so": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "stop": {
+        "enabled": true,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "clip": {
+        "enabled": true,
+        "roles": [
+          "moderator"
+        ]
+      }
+    },
+    "userId": "792098619",
+    "login": "rafael020703"
+  },
+  "overlay": {
+    "allowedCommands": {
+      "watch": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "replay": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "so": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "stop": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "clip": {
+        "enabled": false,
+        "roles": [
+          "moderator"
+        ]
+      }
+    },
+    "userId": null,
+    "login": "overlay"
+  },
+  "rafael02070": {
+    "allowedCommands": {
+      "watch": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "replay": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "repeat": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "so": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "stop": {
+        "enabled": false,
+        "roles": [
+          "broadcaster"
+        ]
+      },
+      "clip": {
+        "enabled": false,
+        "roles": [
+          "moderator"
+        ]
+      }
+    },
+    "userId": null,
+    "login": "rafael02070"
   }
 }

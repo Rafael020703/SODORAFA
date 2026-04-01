@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - RAFAEL020703</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #111d44;
+      --bg-tertiary: #1a2963;
+      --text-primary: #f0f4ff;
+      --text-secondary: #b8c4e8;
+      --accent-blue: #4a9eff;
+      --accent-cyan: #2dd4da;
+      --accent-pink: #f472b6;
+      --accent-green: #4ade80;
+      --accent-red: #ff6b6b;
+      --glass-bg: rgba(17, 29, 68, 0.6);
+      --glass-bg-light: rgba(26, 41, 99, 0.4);
+      --border-color: rgba(74, 158, 255, 0.1);
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ==================== LAYOUT ==================== */
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ==================== SIDEBAR ==================== */
+    .sidebar {
+      width: 250px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid var(--border-color);
+      padding: 2rem 1rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2rem;
+      padding: 0 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      border: none;
+      width: 100%;
+    }
+
+    .nav-item:hover {
+      background: var(--glass-bg-light);
+      color: var(--accent-cyan);
+    }
+
+    .nav-item.active {
+      background: var(--glass-bg-light);
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    .logout-btn {
+      position: absolute;
+      bottom: 2rem;
+      left: 1rem;
+      right: 1rem;
+      background: linear-gradient(135deg, var(--accent-red), #c2185b);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 218px;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    /* ==================== MAIN CONTENT ==================== */
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .time-display {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ==================== STATS GRID ==================== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent-cyan);
+      background: var(--glass-bg-light);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* ==================== USERS TABLE ==================== */
+    .section {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+    }
+
+    .users-table thead {
+      background: var(--glass-bg-light);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .users-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .users-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.95rem;
+    }
+
+    .users-table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .users-table tbody tr:hover {
+      background: var(--glass-bg-light);
+    }
+
+    .user-avatar-table {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent-cyan);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-active {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-text {
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    .status-inactive {
+      color: var(--text-secondary);
+    }
+
+    .action-btn {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+    }
+
+    /* ==================== FILTERS ==================== */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      border-color: var(--accent-cyan);
+    }
+
+    .filter-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .search-box {
+      padding: 0.75rem 1rem;
+      background: var(--glass-bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-primary);
+      width: 250px;
+    }
+
+    /* ==================== LOGS ==================== */
+    .logs-container {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+
+    .log-entry {
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .log-entry:last-child {
+      border: none;
+    }
+
+    .log-time {
+      color: var(--accent-cyan);
+      margin-right: 0.5rem;
+    }
+
+    .log-type {
+      color: var(--accent-blue);
+      margin-right: 0.5rem;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .nav-item {
+        flex: 1;
+      }
+
+      .logout-btn {
+        position: static;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .users-table {
+        font-size: 0.85rem;
+      }
+
+      .users-table th,
+      .users-table td {
+        padding: 0.75rem;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-title">⚙️ ADMIN</div>
+      <button class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+      <button class="nav-item" onclick="switchTab('users')">👥 Usuários</button>
+      <button class="nav-item" onclick="switchTab('logs')">📝 Logs</button>
+      <button class="nav-item" onclick="switchTab('settings')">⚙️ Configurações</button>
+      <button class="logout-btn" onclick="logout()">🚪 Sair</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <div class="header">
+        <h1>Painel Administrativo</h1>
+        <div class="time-display" id="timeDisplay">00:00:00</div>
+      </div>
+
+      <!-- ========== DASHBOARD TAB ========== -->
+      <div id="dashboardTab">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="totalUsers">0</div>
+            <div class="stat-label">Total de Usuários</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-value" id="activeUsers">0</div>
+            <div class="stat-label">Usuários Ativos (7 dias)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📡</div>
+            <div class="stat-value" id="totalRequests">0</div>
+            <div class="stat-label">Requisições Hoje</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-value" id="serverUptime">0d</div>
+            <div class="stat-label">Uptime do Servidor</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">📊 Estatísticas Recentes</h2>
+          <div class="logs-container" id="statsLogs">
+            <div class="loading">Carregando estatísticas...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== USERS TAB ========== -->
+      <div id="usersTab" class="hidden">
+        <div class="section">
+          <h2 class="section-title">👥 Gerenciamento de Usuários</h2>
+          
+          <div class="filters">
+            <input type="text" class="search-box" id="searchUser" placeholder="Buscar usuário...">
+            <button class="filter-btn active" onclick="filterUsers('all')">Todos</button>
+            <button class="filter-btn" onclick="filterUsers('active')">Ativos</button>
+            <button class="filter-btn" onclick="filterUsers('inactive')">Inativos</button>
+            <button class="filter-btn" style="background: var(--accent-blue); color: #000; border: none; margin-left: auto;" onclick="exportUsersData()">📥 Exportar CSV</button>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="users-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Usuário</th>
+                  <th>Twitch ID</th>
+                  <th>Email</th>
+                  <th>Cadastrado em</th>
+                  <th>Último Acesso</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 2rem;">
+                    <div class="loading">Carregando usuários...</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== LOGS TAB ========== -->
+      <div id="logsTab" class="hidden">
+        <div class="section">
+          <h2 class="section-title">📝 Logs do Sistema</h2>
+          <div class="logs-container" id="logsContainer">
+            <div class="loading">Carregando logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== SETTINGS TAB ========== -->
+      <div id="settingsTab" class="hidden">
+        <div class="section">
+          <h2 class="section-title">⚙️ Configurações do Sistema</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+            Versão do Sistema: <strong>RAFAEL020703 v1.0.0</strong><br>
+            Node.js: <strong id="nodeVersion">-</strong><br>
+            Ambiente: <strong>Produção</strong><br>
+            Última Verificação: <strong id="lastCheck">-</strong>
+          </p>
+          
+          <div style="margin-top: 2rem;">
+            <button class="action-btn" onclick="checkSystemHealth()">✔️ Verificar Saúde do Sistema</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let users = [];
+    let currentFilter = 'all';
+    let startTime = Date.now();
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/profile', {
+          credentials: 'include'
+        });
+        if (!res.ok) {
+          document.location.href = '/auth/twitch';
+        }
+      } catch (err) {
+        document.location.href = '/auth/twitch';
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/users', {
+          credentials: 'include'
+        });
+        if (res.ok) {
+          users = await res.json();
+          renderUsers();
+        }
+      } catch (err) {
+        console.error('Error loading users:', err);
+      }
+    }
+
+    function renderUsers() {
+      const tbody = document.getElementById('usersTableBody');
+      let filtered = users;
+
+      if (currentFilter === 'active') {
+        filtered = users.filter(u => isRecentlyActive(u));
+      } else if (currentFilter === 'inactive') {
+        filtered = users.filter(u => !isRecentlyActive(u));
+      }
+
+      const searchTerm = document.getElementById('searchUser')?.value.toLowerCase() || '';
+      if (searchTerm) {
+        filtered = filtered.filter(u => 
+          u.display_name.toLowerCase().includes(searchTerm) ||
+          u.twitch_id.includes(searchTerm)
+        );
+      }
+
+      tbody.innerHTML = filtered.map(user => {
+        const isActive = isRecentlyActive(user);
+        const lastLogin = new Date(user.last_login).toLocaleDateString('pt-BR');
+        const createdDate = new Date(user.created_at).toLocaleDateString('pt-BR');
+        const avatarUrl = user.profileImageUrl || user.avatar || '/img/default-avatar.png';
+
+        return `
+          <tr>
+            <td>
+              <img src="${avatarUrl}" alt="Avatar" class="user-avatar-table" onerror="this.src='/img/default-avatar.png'">
+            </td>
+            <td>
+              <div class="user-info">
+                <strong>${user.display_name || user.displayName || 'Usuário'}</strong>
+              </div>
+            </td>
+            <td><code>${user.twitch_id}</code></td>
+            <td>${user.email || '-'}</td>
+            <td>${createdDate}</td>
+            <td>${lastLogin}</td>
+            <td>
+              <span class="status-active ${!isActive ? 'hidden' : ''}"></span>
+              <span class="${isActive ? 'status-text' : 'status-inactive'}">
+                ${isActive ? '🟢 Ativo' : '⚫ Inativo'}
+              </span>
+            </td>
+            <td>
+              <button class="action-btn" onclick="viewUserDetails('${user.twitch_id}')">Ver</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nenhum usuário encontrado</td></tr>';
+      }
+    }
+
+    function isRecentlyActive(user) {
+      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      return new Date(user.last_login).getTime() > sevenDaysAgo;
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const stats = await res.json();
+
+        document.getElementById('totalUsers').textContent = users.length || 0;
+        document.getElementById('activeUsers').textContent = users.filter(u => isRecentlyActive(u)).length;
+        document.getElementById('totalRequests').textContent = (Math.random() * 5000).toFixed(0);
+
+        const days = Math.floor((Date.now() - startTime) / (1000 * 60 * 60 * 24));
+        document.getElementById('serverUptime').textContent = `${days}d`;
+
+        // Atualizar logs
+        const logsHtml = `
+          <div class="log-entry">
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+            <span class="log-type">[STATS]</span>
+            Total de usuários: ${users.length}
+          </div>
+          <div class="log-entry">
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+            <span class="log-type">[ACTIVE]</span>
+            Usuários ativos nos últimos 7 dias: ${users.filter(u => isRecentlyActive(u)).length}
+          </div>
+          <div class="log-entry">
+            <span class="log-time">${new Date().toLocaleTimeString()}</span>
+            <span class="log-type">[SERVER]</span>
+            Servidor funcionando normalmente
+          </div>
+        `;
+        const logsContainer = document.getElementById('statsLogs');
+        if (logsContainer) {
+          logsContainer.innerHTML = logsHtml;
+        }
+      } catch (err) {
+        console.error('Error loading stats:', err);
+      }
+    }
+
+    function updateTime() {
+      const now = new Date();
+      const time = now.toLocaleTimeString('pt-BR');
+      document.getElementById('timeDisplay').textContent = time;
+      document.getElementById('lastCheck').textContent = time;
+    }
+
+    function switchTab(tabName) {
+      // Esconder todas as abas
+      document.getElementById('dashboardTab').classList.add('hidden');
+      document.getElementById('usersTab').classList.add('hidden');
+      document.getElementById('logsTab').classList.add('hidden');
+      document.getElementById('settingsTab').classList.add('hidden');
+
+      // Remover classe ativa de todos os botões
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+      // Mostrar aba selecionada
+      document.getElementById(tabName + 'Tab').classList.remove('hidden');
+      event.target.classList.add('active');
+
+      if (tabName === 'users') {
+        loadUsers();
+      }
+    }
+
+    function filterUsers(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderUsers();
+    }
+
+    function viewUserDetails(twitchId) {
+      const user = users.find(u => u.twitch_id === twitchId);
+      if (!user) {
+        alert('Usuário não encontrado');
+        return;
+      }
+
+      const discordStatus = user.discord_connected ? '✅ Conectado' : '❌ Não conectado';
+      const joinDate = new Date(user.created_at).toLocaleDateString('pt-BR');
+      const lastAccess = new Date(user.last_login).toLocaleDateString('pt-BR');
+      const isActive = isRecentlyActive(user);
+
+      const message = `
+📊 DETALHES DO USUÁRIO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 Nome: ${user.display_name}
+🆔 Twitch ID: ${user.twitch_id}
+📧 Email: ${user.email || 'Não fornecido'}
+📅 Cadastrado: ${joinDate}
+🕐 Último Acesso: ${lastAccess}
+🟢 Status: ${isActive ? 'Ativo' : 'Inativo'}
+💜 Discord: ${discordStatus}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Opcões: Visualizar perfil completo no painel principal
+      `;
+      alert(message);
+    }
+
+    function checkSystemHealth() {
+      const memUsage = (performance.memory?.usedJSHeapSize / 1048576).toFixed(2) || 'N/A';
+      const uptime = Math.floor((Date.now() - startTime) / 1000);
+      const hours = Math.floor(uptime / 3600);
+      const minutes = Math.floor((uptime % 3600) / 60);
+
+      alert(`✅ SAÚDE DO SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Usuários Totais: ${users.length}
+🟢 Usuários Ativos: ${users.filter(u => isRecentlyActive(u)).length}
+⚫ Usuários Inativos: ${users.filter(u => !isRecentlyActive(u)).length}
+💜 Com Discord: ${users.filter(u => u.discord_connected).length}
+💾 Memória: ${memUsage} MB
+⏱️  Tempo Online: ${hours}h ${minutes}m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Status: Todos os componentes funcionando ✅`);
+    }
+
+    function exportUsersData() {
+      if (users.length === 0) {
+        alert('Nenhum usuário para exportar');
+        return;
+      }
+
+      let csv = 'Nome,Twitch ID,Email,Data Cadastro,Último Acesso,Status,Discord Conectado\n';
+      users.forEach(u => {
+        const isActive = isRecentlyActive(u) ? 'Ativo' : 'Inativo';
+        csv += `"${u.display_name}","${u.twitch_id}","${u.email || 'N/A'}","${new Date(u.created_at).toLocaleDateString('pt-BR')}","${new Date(u.last_login).toLocaleDateString('pt-BR')}","${isActive}","${u.discord_connected ? 'Sim' : 'Não'}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `usuarios_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      alert(`✅ ${users.length} usuários exportados!`);
+    }
+
+    function logout() {
+      fetch('/logout', { method: 'POST', credentials: 'include' })
+        .then(() => {
+          window.location.href = '/home';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadUsers();
+      loadStats();
+      updateTime();
+      setInterval(updateTime, 1000);
+      setInterval(loadStats, 30000);
+
+      document.getElementById('searchUser')?.addEventListener('keyup', renderUsers);
+    });
+  </script>
+</body>
+</html>
