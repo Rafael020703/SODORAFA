@@ -425,12 +425,47 @@ class VideoManager {
    * @param {number} bytes - Quantidade em bytes
    * @returns {string} - Formato legível
    */
-  formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  /**
+   * Limpa clipes antigos, mantendo máximo de clipes especificado
+   * @param {number} maxClips - Máximo de clipes a manter (padrão: 50)
+   * @returns {Promise<void>}
+   */
+  async cleanOldClips(maxClips = 50) {
+    try {
+      // Obter todos os clipes
+      const allClips = await this.getAllClips();
+      
+      if (allClips.length <= maxClips) {
+        return; // Nada a fazer
+      }
+
+      // Ordenar por data de download (mais antigos primeiro)
+      const sorted = allClips.sort((a, b) => {
+        const dateA = new Date(a.downloadedAt || a.createdAt).getTime();
+        const dateB = new Date(b.downloadedAt || b.createdAt).getTime();
+        return dateA - dateB;
+      });
+
+      // Calcular quantos precisam ser deletados
+      const toDelete = sorted.length - maxClips;
+      console.log(`🧹 Limpando ${toDelete} clipes antigos (máximo: ${maxClips}, total: ${sorted.length})`);
+
+      // Deletar os mais antigos
+      for (let i = 0; i < toDelete; i++) {
+        const clip = sorted[i];
+        const clipPath = path.join(this.baseDir, clip.streamer, clip.slug);
+        
+        try {
+          // Deletar diretório recursivamente
+          await fsPromises.rm(clipPath, { recursive: true, force: true });
+          console.log(`  ✓ Deletado: ${clip.slug} (${(clip.size / 1024 / 1024).toFixed(2)} MB)`);
+        } catch (err) {
+          console.error(`  ✗ Erro ao deletar ${clip.slug}:`, err.message);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Erro ao limpar clipes antigos:`, error.message);
+    }
   }
 
   /**

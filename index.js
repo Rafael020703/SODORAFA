@@ -1075,16 +1075,12 @@ async function queueUserClip(chan, user) {
     const selectedClip = clipsToConsider[Math.floor(Math.random() * clipsToConsider.length)];
     const clipSlug = selectedClip.url.split('/').pop();
     
-    // Declarar variáveis que serão usadas depois
-    let clipName = selectedClip.title;
-    let sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
-    
     try {
-      // Buscar nome real do clip via API
+      // Buscar nome real do clip via API (apenas para salvar nos dados)
+      let clipName = selectedClip.title;
       const clipDetailsFromAPI = await twitchApi.getClipInfoBySlug(clipSlug);
       if (clipDetailsFromAPI && clipDetailsFromAPI.title) {
         clipName = clipDetailsFromAPI.title;
-        sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
       }
       
       // Extrair token via Puppeteer (com fallback manual)
@@ -1093,8 +1089,8 @@ async function queueUserClip(chan, user) {
       // Preparar diretório
       const outputDir = path.join(__dirname, 'data', 'videos', user.toLowerCase(), clipSlug);
       
-      // Usar nome real do clip para o arquivo
-      const outputPath = path.join(outputDir, `${sanitizedClipName}.mp4`);
+      // Usar nome fixo "clip.mp4" para compatibilidade com overlay
+      const outputPath = path.join(outputDir, 'clip.mp4');
       
       // Verificar se já foi baixado
       if (fs.existsSync(outputPath)) {
@@ -1119,6 +1115,9 @@ async function queueUserClip(chan, user) {
       
       fs.writeFileSync(path.join(outputDir, 'metadata.json'), JSON.stringify(metadata, null, 2));
       
+      // Limpar clipes antigos (manter máximo 50)
+      await videoManager.cleanOldClips(50);
+      
     } catch (downloadErr) {
       console.error(`❌ [${chan}] Erro ao baixar clipe:`, downloadErr.message);
       return;
@@ -1129,7 +1128,7 @@ async function queueUserClip(chan, user) {
       id: clipSlug,
       channel: user,
       duration: selectedClip.duration || 15,
-      url: `/videos/${user}/${clipSlug}/${sanitizedClipName}.mp4`,
+      url: `/videos/${user}/${clipSlug}/clip.mp4`,
       thumbnail: null,
       title: clipName
     };
