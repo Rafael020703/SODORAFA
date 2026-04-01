@@ -73,6 +73,81 @@ async function extractUrlViaHtmlParsing(clipSlug) {
 }
 
 /**
+ * Extrai URL do clipe diretamente via Puppeteer (headless browser)
+ * Necessário em produção onde MP4 é renderizado dinamicamente
+ * @param {string} clipSlug - Slug do clipe
+ * @returns {Promise<string|null>} URL do clipe com token ou null
+ */
+async function extractClipTokenViaPuppeteer(clipSlug) {
+  let browser;
+  try {
+    console.log(`[Puppeteer] Iniciando navegador headless...`);
+    
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-dev-shm-usage'
+      ]
+    });
+
+    const page = await browser.newPage();
+    
+    let clipUrl = null;
+
+    // Capturar respostas de rede para encontrar MP4
+    page.on('response', async (response) => {
+      try {
+        const url = response.url();
+        if (url.includes('production.assets.clips.twitchcdn.net') && url.includes('.mp4')) {
+          clipUrl = url;
+        }
+      } catch (e) {}
+    });
+
+    const pageUrl = `https://clips.twitch.tv/${clipSlug}`;
+    
+    try {
+      await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    } catch (e) {
+      console.log(`[Puppeteer] ⚠️ Timeout ao carregar página (pode estar OK)`);
+    }
+
+    // Se não achou na rede, tenta no HTML renderizado
+    if (!clipUrl) {
+      const html = await page.content();
+      const match = html.match(/(https:\/\/production\.assets\.clips\.twitchcdn\.net[^"'<>\s]*\.mp4[^"'<>\s]*)/);
+      if (match) {
+        clipUrl = match[1];
+      }
+    }
+
+    await page.close();
+    
+    if (clipUrl) {
+      console.log(`[Puppeteer] ✅ URL extraída com sucesso!`);
+      return clipUrl;
+    }
+    
+    throw new Error('URL do MP4 não encontrada');
+
+  } catch (error) {
+    console.log(`[Puppeteer] ⚠️ Falhou: ${error.message}`);
+    return null;
+  } finally {
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (e) {}
+    }
+  }
+}
+
+
+/**
  * Extrai URL do clipe com token JWT do Twitch
  * Tenta múltiplos métodos automaticamente
  * @param {string} clipSlug - Slug do clipe (ex: HotVivaciousSnailCopyThis-bfzeiWEOS4y20tV4)
@@ -81,88 +156,20 @@ async function extractUrlViaHtmlParsing(clipSlug) {
 async function extractClipTokenViaHeadless(clipSlug) {
   console.log(`[Token Extractor] Processando clipe: ${clipSlug}`);
   
-  // MÉTODO 1: Puppeteer (NECESSÁRIO porque o MP4 link é renderizado dinamicamente via JavaScript)
-  let browser;
-  try {
-    console.log(`[Token Extractor] Tentando Puppeteer...`);
-    
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process'
-      ],
-      timeout: 30000
-    });
-
-    const page = await browser.newPage();
-    
-    await page.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    );
-
-    let clipDownloadUrl = null;
-    
-    // Capturar respostas de rede para encontrar o MP4
-    page.on('response', async (response) => {
-      try {
-        const url = response.url();
-        if (url.includes('production.assets.clips.twitchcdn.net') && url.includes('.mp4')) {
-          clipDownloadUrl = url;
-          console.log(`[Token Extractor] ✅ Token extraído via Playwright!`);
-        }
-      } catch (e) {
-        // Ignorar erros
-      }
-    });
-
-    const clipUrl = `https://www.twitch.tv/user/clip/${clipSlug}`;
-    
-    try {
-      await page.goto(clipUrl, {
-        waitUntil: 'networkidle2',
-        timeout: 45000
-      });
-    } catch (e) {
-      console.log(`[Token Extractor] ⚠️ Timeout Puppeteer (pode estar OK)`);
-    }
-
-    if (!clipDownloadUrl) {
-      const htmlContent = await page.content();
-      const videoMatch = htmlContent.match(/https:\/\/production\.assets\.clips\.twitchcdn\.net[^"'<>]*\.mp4[^"'<>]*/);
-      if (videoMatch) {
-        clipDownloadUrl = videoMatch[0];
-      }
-    }
-
-    await page.close();
-
-    if (clipDownloadUrl) {
-      const expiresAt = Date.now() + (6 * 60 * 60 * 1000);
-      return {
-        url: clipDownloadUrl,
-        expires: expiresAt,
-        extractedAt: new Date().toISOString(),
-        method: 'puppeteer'
-      };
-    }
-
-  } catch (error) {
-    console.log(`[Token Extractor] ⚠️ Puppeteer falhou: ${error.message}`);
-  } finally {
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (e) {
-        // Ignorar
-      }
-    }
+  // MÉTODO 1: Puppeteer (Headless Browser) - Funciona em produção com GUI libs
+  const redirectUrl = await extractClipTokenViaPuppeteer(clipSlug);
+  if (redirectUrl) {
+    const expiresAt = Date.now() + (6 * 60 * 60 * 1000);
+    console.log(`[Token Extractor] ✅ Sucesso via Puppeteer!`);
+    return {
+      url: redirectUrl,
+      expires: expiresAt,
+      extractedAt: new Date().toISOString(),
+      method: 'puppeteer'
+    };
   }
 
-  // MÉTODO 2: Fallback para HTML Parsing
+  // MÉTODO 2: HTML Parser (Fallback se Puppeteer falhar)
   try {
     console.log(`[Token Extractor] Tentando HTML Parser como fallback...`);
     const htmlUrl = await extractUrlViaHtmlParsing(clipSlug);
@@ -180,8 +187,19 @@ async function extractClipTokenViaHeadless(clipSlug) {
     console.log(`[Token Extractor] HTML Parser também falhou: ${e.message}`);
   }
 
-  // MÉTODO 3: Fallback - Solicitar token manual
-  console.log(`[Token Extractor] Usando fallback manual...\n`);
+  // MÉTODO 4: Fallback - Solicitar token manual (apenas em dev/interativo)
+  console.log(`[Token Extractor] Usando fallback manual...`);
+  
+  // Em produção (no-interact), não tenta fallback manual
+  if (!process.stdin.isTTY) {
+    throw new Error(
+      'Não foi possível extrair token automaticamente. ' +
+      'Todos os métodos falharam (GraphQL, Puppeteer, HTML Parser). ' +
+      'Verifique: 1) TWITCH_CLIENT_ID está correto? 2) Clip slug é válido? ' +
+      '3) Há conexão com a internet?'
+    );
+  }
+  
   return await extractClipTokenViaManualFallback(clipSlug);
 }
 
