@@ -38,11 +38,18 @@ class VideoManager {
   async getVideoPath(slug, streamerName) {
     try {
       const dir = path.join(this.baseDir, streamerName, slug);
-      const videoPath = path.join(dir, 'clip.mp4');
-
-      if (await this.fileExists(videoPath)) {
-        return videoPath;
+      
+      // Procurar por qualquer arquivo .mp4 no diretório (pode ter nome do clip real)
+      if (await this.fileExists(dir)) {
+        const files = await fsPromises.readdir(dir);
+        const mp4Files = files.filter(f => f.endsWith('.mp4'));
+        
+        if (mp4Files.length > 0) {
+          // Retornar o primeiro (e geralmente único) MP4 encontrado
+          return path.join(dir, mp4Files[0]);
+        }
       }
+      
       return null;
     } catch (err) {
       console.error(`❌ Erro ao verificar vídeo ${streamerName}/${slug}:`, err);

@@ -1075,21 +1075,27 @@ async function queueUserClip(chan, user) {
     const selectedClip = clipsToConsider[Math.floor(Math.random() * clipsToConsider.length)];
     const clipSlug = selectedClip.url.split('/').pop();
     
-    console.log(`\n📥 [${chan}] Baixando: "${selectedClip.title}" por ${selectedClip.creator_name}`);
-    console.log(`   Views: ${selectedClip.view_count} | Criado: ${new Date(selectedClip.created_at).toLocaleDateString('pt-BR')}`);
-    
     try {
+      // Buscar nome real do clip via API
+      let clipName = selectedClip.title;
+      const clipDetailsFromAPI = await twitchApi.getClipInfoBySlug(clipSlug);
+      if (clipDetailsFromAPI && clipDetailsFromAPI.title) {
+        clipName = clipDetailsFromAPI.title;
+      }
+      
       // Extrair token via Puppeteer (com fallback manual)
       const { url: downloadUrl, extractedAt, method } = await clipTokenExtractor.extractClipTokenViaHeadless(clipSlug);
-      console.log(`✅ [${chan}] Token extraído (método: ${method})`);
       
       // Preparar diretório
       const outputDir = path.join(__dirname, 'data', 'videos', user.toLowerCase(), clipSlug);
-      const outputPath = path.join(outputDir, 'clip.mp4');
+      
+      // Usar nome real do clip para o arquivo (sanitizando caracteres inválidos em nomes de arquivo)
+      const sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
+      const outputPath = path.join(outputDir, `${sanitizedClipName}.mp4`);
       
       // Verificar se já foi baixado
       if (fs.existsSync(outputPath)) {
-        console.log(`✓ [${chan}] Clipe já existe no disco (${(fs.statSync(outputPath).size / 1024 / 1024).toFixed(2)} MB)`);
+        console.log(`✓ Clipe já existe no disco`);
       } else {
         // Fazer download
         await clipTokenExtractor.downloadClipWithToken(downloadUrl, outputPath);
@@ -1099,7 +1105,7 @@ async function queueUserClip(chan, user) {
       const metadata = {
         slug: clipSlug,
         streamer: user.toLowerCase(),
-        title: selectedClip.title,
+        title: clipName,
         creator: selectedClip.creator_name,
         views: selectedClip.view_count,
         duration: selectedClip.duration || 15,
@@ -1109,7 +1115,6 @@ async function queueUserClip(chan, user) {
       };
       
       fs.writeFileSync(path.join(outputDir, 'metadata.json'), JSON.stringify(metadata, null, 2));
-      console.log(`💾 [${chan}] Metadata salva`);
       
     } catch (downloadErr) {
       console.error(`❌ [${chan}] Erro ao baixar clipe:`, downloadErr.message);
@@ -1121,18 +1126,16 @@ async function queueUserClip(chan, user) {
       id: clipSlug,
       channel: user,
       duration: selectedClip.duration || 15,
-      url: `/videos/${user}/${clipSlug}/clip.mp4`,
+      url: `/videos/${user}/${clipSlug}/${sanitizedClipName}.mp4`,
       thumbnail: null,
-      title: selectedClip.title
+      title: clipName
     };
     
-    console.log(`📺 [${chan}] Enfileirando para reprodução...`);
     state.clipQueue.push(clip);
     playNext(chan);
     
     // Se está em modo repeat, marca para próxima
     if (state.repeatUser === user) {
-      console.log(`🔁 [${chan}] Modo repeat ativo - próximo clipe será buscado quando este terminar`);
       state.playedUserClips.push(clipSlug);
     }
     

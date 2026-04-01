@@ -277,11 +277,7 @@
       </video>
       <div class="video-controls-overlay" id="video-controls" style="display: none;">
         <div class="video-info">
-          <div class="video-info-left">
-            <span id="clip-info">▶️ Clipe</span>
-            <span class="clip-duration" id="clip-duration">0s</span>
-          </div>
-          <span id="current-time">0s / 0s</span>
+          <div class="video-info-left"></div>
         </div>
         <div class="video-play-progress" id="progress-bar">
           <div class="video-play-progress-bar" id="progress-fill"></div>
@@ -299,9 +295,6 @@
       const videoPlayer = document.getElementById('video-player');
       const videoLoading = document.getElementById('video-loading');
       const videoControls = document.getElementById('video-controls');
-      const clipInfo = document.getElementById('clip-info');
-      const clipDuration = document.getElementById('clip-duration');
-      const currentTime = document.getElementById('current-time');
       const progressBar = document.getElementById('progress-bar');
       const progressFill = document.getElementById('progress-fill');
       const banAudio = document.getElementById('ban-sound');
@@ -380,10 +373,6 @@
         videoControls.style.display = 'none';
         videoPlayer.style.display = 'none';
 
-        clipInfo.textContent = `▶️ Clipe (${duration}s)`;
-        clipDuration.textContent = `${duration}s`;
-        currentTime.textContent = `0s / ${duration}s`;
-
         console.log(`📥 Carregando vídeo de: ${url}`);
 
         // Adiciona channel como query param
@@ -405,10 +394,6 @@
         };
 
         const onTimeUpdate = () => {
-          const current = Math.round(videoPlayer.currentTime);
-          const total = Math.round(videoPlayer.duration) || duration;
-          currentTime.textContent = `${current}s / ${total}s`;
-          
           const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
           progressFill.style.width = percent + '%';
         };

@@ -177,6 +177,29 @@ async function getClipInfo(id) {
   return json.data[0];
 }
 
+/**
+ * Busca informações do clip por slug
+ * @param {string} clipSlug - Slug do clip
+ * @returns {Promise<Object|null>} Dados do clip
+ */
+async function getClipInfoBySlug(clipSlug) {
+  if (!clipSlug) return null;
+  await ensureToken();
+  
+  try {
+    const resp = await fetch(
+      `https://api.twitch.tv/helix/clips?first=1&slug=${encodeURIComponent(clipSlug)}`,
+      { headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Authorization': TWITCH_TOKEN } }
+    );
+    
+    const json = await resp.json();
+    if (!resp.ok || !json?.data?.length) return null;
+    return json.data[0];
+  } catch (error) {
+    return null;
+  }
+}
+
 async function getClipVideoUrl(clipSlug) {
   // Obtém URL de vídeo do clip via API GraphQL da Twitch
   if (!clipSlug) return null;
@@ -394,6 +417,7 @@ module.exports = {
   getAllUserClipsWithVideo,
   getClipVideoUrl,
   getClipInfo,
+  getClipInfoBySlug,
   createClip,
   getStream,
   updateAccessToken,
