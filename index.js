@@ -1075,12 +1075,16 @@ async function queueUserClip(chan, user) {
     const selectedClip = clipsToConsider[Math.floor(Math.random() * clipsToConsider.length)];
     const clipSlug = selectedClip.url.split('/').pop();
     
+    // Declarar variáveis que serão usadas depois
+    let clipName = selectedClip.title;
+    let sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
+    
     try {
       // Buscar nome real do clip via API
-      let clipName = selectedClip.title;
       const clipDetailsFromAPI = await twitchApi.getClipInfoBySlug(clipSlug);
       if (clipDetailsFromAPI && clipDetailsFromAPI.title) {
         clipName = clipDetailsFromAPI.title;
+        sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
       }
       
       // Extrair token via Puppeteer (com fallback manual)
@@ -1089,8 +1093,7 @@ async function queueUserClip(chan, user) {
       // Preparar diretório
       const outputDir = path.join(__dirname, 'data', 'videos', user.toLowerCase(), clipSlug);
       
-      // Usar nome real do clip para o arquivo (sanitizando caracteres inválidos em nomes de arquivo)
-      const sanitizedClipName = clipName.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 100);
+      // Usar nome real do clip para o arquivo
       const outputPath = path.join(outputDir, `${sanitizedClipName}.mp4`);
       
       // Verificar se já foi baixado
